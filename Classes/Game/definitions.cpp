@@ -1,0 +1,4 @@
+#include "definitions.h"
+
+char COMPANYNAME[NUMBER_OF_STOCKS][20]={"WORLDWIDE","SACKSON","FESTIVAL","IMPERIAL","AMERICAN","CONTINENTAL","TOWER"};
+char info[2000]="";
