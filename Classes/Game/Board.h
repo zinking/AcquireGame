@@ -6,24 +6,24 @@ using namespace std;
 #include "definitions.h"
 #include "Player.h"
 
-struct Tile{
+struct ATile{
 	int row;
 	int col;
-	Tile( int r, int c );
-	Tile();
+	ATile( int r, int c );
+	ATile();
 	//int hashCode(){ return row*31+col; }
-	bool operator==( const Tile& rhs ) const;
-	bool operator<(  const Tile& rhs ) const;
+	bool operator==( const ATile& rhs ) const;
+	bool operator<(  const ATile& rhs ) const;
 	string toString() const ;
 };
 
 struct Block{
 	enum COMPANY  c;
-	set<Tile> tiles;
+	set<ATile> ATiles;
 	Block( enum COMPANY cc );
 	Block();
-	bool hasTile( const Tile& t );
-	void addTile( const Tile& t );
+	bool hasATile( const ATile& t );
+	void addATile( const ATile& t );
 	//why block would have no company setup at all?
 	bool hasCompany();
 	bool operator==( const Block& rhs ) const;
@@ -41,16 +41,16 @@ struct  Player{
 	const char* getID() const;
 	int getCash() const ;
 	void debitCash( int amount );
-	void getAllocatedTiles(const set<Tile>& t );
+	void getAllocatedATiles(const set<ATile>& t );
 	void addStock( enum COMPANY c, int count);
-	void removeTile( const Tile& t );
-	void addTile( const Tile& t );
-	bool hasTile( const Tile& t )const ;
+	void removeATile( const ATile& t );
+	void addATile( const ATile& t );
+	bool hasATile( const ATile& t )const ;
 	bool hasStock( const enum COMPANY c ) const;
 	int getStockAmt( const enum COMPANY c ) const;
-	int tileCount()const;
+	int ATileCount()const;
 	string toString();
-	set<Tile> tiles;
+	set<ATile> ATiles;
 	time_t time_used;
 	int  cash;
 	int  stocks[NUMBER_OF_STOCKS];
@@ -62,8 +62,8 @@ struct MergeEvent{
 	//int largest_block_index;
 	//set<COMPANY> adjcompanies;
 
-	MergeEvent( vector<Block>& allBlocks, const Tile& newTile );
-	Block* getBlockWithTile( vector<Block>& allblocks, Tile& newTile);
+	MergeEvent( vector<Block>& allBlocks, const ATile& newATile );
+	Block* getBlockWithATile( vector<Block>& allblocks, ATile& newATile);
 	bool isValidMerger()const;
 	bool isNewBlock()const;
 	bool isAdjToOneBlock()const;
@@ -105,7 +105,7 @@ struct GameStatus{
 public:
 	GameStatus( );
 	/*this method intends to tell player what blocks are available now*/
-	const vector<Tile>  getAvailableTiles() const;
+	const vector<ATile>  getAvailableATiles() const;
 	const vector<Block> getAllBlocks()const;
 	const vector<COMPANY> getAllAvailableCompanies()const;
 	const string toString()const;
@@ -118,28 +118,28 @@ struct Game{
 	//int board[WIDTH][HEIGH];
 	//static const int STOCK_SIZE=25;
 	int stocks[NUMBER_OF_STOCKS];
-	vector<Tile> alltiles;
+	vector<ATile> allATiles;
 	vector<Block> allblocks;
 	vector<Player*> players;
 	GameStatus gs;
 	StockTable stocktable;
 
 	int round;
-	Tile current_tile;
+	ATile current_ATile;
 	Game( );
 	void initGame();
 	void addPlayer( Player* player );
-	void initPlayerWithTiles();
+	void initPlayerWithATiles();
 	bool isEndOfGame();
-	const Tile askPlayerToPlaceTile( Player* p );
-	void allocatePlayerOneTile( Player* p );
+	const ATile askPlayerToPlaceATile( Player* p );
+	void allocatePlayerOneATile( Player* p );
 	void askPlayerToBuyStock(  Player* p );
-	void askPlayerToSetupCompany(  Player* p , const Tile& t  );
+	void askPlayerToSetupCompany(  Player* p , const ATile& t  );
 	void askPlayersToSellStock( const vector<Player*> shareholders );
 	void askPlayersToConvertStock( const vector<Player*> shareholders );
 	void runTheGame();
 	vector<int> getAvailableNewCompanies();
-	void doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, Tile& via );
+	void doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via );
 	void allocateBonusFor( enum COMPANY c , const vector<Player*> shs );
 	void statistics();
 };

@@ -2,11 +2,11 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
-#include "Game\Board.h"
+struct Game;
 
 class AcquireScene : public cocos2d::CCLayer
 {
-	Game* ginstance;
+	Game* pGame;
 public:
     // Here's a difference. Method 'init' in cocos2d-x returns bool, instead of returning 'id' in cocos2d-iphone
     virtual bool init();  
@@ -19,7 +19,7 @@ public:
     
     // implement the "static node()" method manually
     CREATE_FUNC(AcquireScene);
-	int render_board(AcquireBoard& b);
+	int render_board( );
 };
 
 #endif // __HELLOWORLD_SCENE_H__

@@ -2,12 +2,16 @@
 #include "AppMacros.h"
 
 USING_NS_CC;
+#include "Game/board.h"
+#include "Game/definitions.h"
+
 
 
 CCScene* AcquireScene::scene()
 {
     // 'scene' is an autorelease object
     CCScene *scene = CCScene::create();
+	
     
     // 'layer' is an autorelease object
     AcquireScene *layer = AcquireScene::create();
@@ -19,13 +23,13 @@ CCScene* AcquireScene::scene()
     return scene;
 }
 
-int AcquireScene::render_board(AcquireBoard& board)
+int AcquireScene::render_board( )
 {
 	CCSprite* st = CCSprite::create("block.png");
 	CCPoint ptStart = ccp( 5,5 );
 	const int BLOCK_SIZE = 32;
-	for( int i=0; i<board.WIDTH; i++ ){
-		for( int j=0; j<board.HEIGH; j++ ){
+	for( int i=0; i<WIDTH; i++ ){
+		for( int j=0; j<HEIGH; j++ ){
 			CCSprite* pblock = CCSprite::create();
 			pblock->initWithTexture( st->getTexture() );
 			pblock->setPosition( ccp( i*BLOCK_SIZE, j*BLOCK_SIZE ) );
@@ -46,6 +50,8 @@ bool AcquireScene::init()
         return false;
     }
     
+
+	pGame = new Game;
     CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
     CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
@@ -71,8 +77,8 @@ bool AcquireScene::init()
     /////////////////////////////
     // 3. add your codes below...
 
-	AcquireBoard b;
-	this->render_board(b);
+	//AcquireBoard b;
+	this->render_board();
 
     // add a label shows "Hello World"
     // create and initialize a label

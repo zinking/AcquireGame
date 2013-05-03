@@ -1,6 +1,6 @@
 struct GameStatus;
 struct Player;
-struct Tile;
+struct ATile;
 struct Game;
 
 struct Order{
@@ -10,9 +10,9 @@ struct Order{
 };
 
 
-struct PlaceTileOrder:Order{
-	const Tile& t;
-	PlaceTileOrder( const Tile& tt );
+struct PlaceATileOrder:Order{
+	const ATile& t;
+	PlaceATileOrder( const ATile& tt );
 	string toString();
 	bool isValid( const GameStatus& gs, const Player& from )const;
 	bool execute( Game* g, Player* p )const;

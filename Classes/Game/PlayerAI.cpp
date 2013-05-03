@@ -11,9 +11,9 @@ const ConvertStockOrder DefaultAI::decideDoStockConversion(const GameStatus& bs 
 	ConvertStockOrder od( c , pplayer->getStockAmt( c ) );
 	return od;
 }
-const PlaceTileOrder DefaultAI::decidePlaceTile( const GameStatus& bs ){
-	const Tile& t = *( pplayer->tiles.begin() );
-	PlaceTileOrder od( t );
+const PlaceATileOrder DefaultAI::decidePlaceATile( const GameStatus& bs ){
+	const ATile& t = *( pplayer->ATiles.begin() );
+	PlaceATileOrder od( t );
 	return od;
 }
 const BuyStockOrder DefaultAI::decideBuyStocks( const GameStatus& bs){

@@ -31,25 +31,25 @@ string SellStockOrder::toString(){
 
 
 
-PlaceTileOrder::PlaceTileOrder( const Tile& tt ):t(tt){}
-string PlaceTileOrder::toString(){
+PlaceATileOrder::PlaceATileOrder( const ATile& tt ):t(tt){}
+string PlaceATileOrder::toString(){
 	sprintf_s( info, "PLACE TIEL ORDER:%s", t.toString().c_str() );
 	return info;
 }
 
-bool PlaceTileOrder::isValid( const GameStatus& gs, const Player& from )const{
-	return from.hasTile( t );
+bool PlaceATileOrder::isValid( const GameStatus& gs, const Player& from )const{
+	return from.hasATile( t );
 }
 
-bool PlaceTileOrder::execute( Game* g, Player* p )const{
+bool PlaceATileOrder::execute( Game* g, Player* p )const{
 	if( isValid( g->gs, *p )){
-		sprintf_s( info, "PLAYER[%s] PLACED AN TILE[%s]\n", p->getID(),t.toString().c_str() );
+		sprintf_s( info, "PLAYER[%s] PLACED AN ATile[%s]\n", p->getID(),t.toString().c_str() );
 		cout << info << endl;
-		p->removeTile( t );
+		p->removeATile( t );
 		return true;
 	}
 	else{
-		sprintf_s( info, "PLAYER[%s] PLACED AN INVALID TILE[%s] IGNORED\n", p->getID(),t.toString().c_str() );
+		sprintf_s( info, "PLAYER[%s] PLACED AN INVALID ATile[%s] IGNORED\n", p->getID(),t.toString().c_str() );
 		cout << info << endl;
 		return false;
 	}

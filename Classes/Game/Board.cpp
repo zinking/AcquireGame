@@ -23,28 +23,28 @@ extern char info[200];
 extern char COMPANYNAME[NUMBER_OF_STOCKS][20];
 
 
-Tile::Tile( int r, int c ):row(r),col(c){}
-Tile::Tile():row(0),col(0){}
-bool Tile::operator==( const Tile& rhs )const{
+ATile::ATile( int r, int c ):row(r),col(c){}
+ATile::ATile():row(0),col(0){}
+bool ATile::operator==( const ATile& rhs )const{
 	return row == rhs.row && col == rhs.col;
 }
 
-bool Tile::operator<(  const Tile& rhs )const{
+bool ATile::operator<(  const ATile& rhs )const{
 	return (row  == rhs.row ? col < rhs.col : row < rhs.row );
 }
-string Tile::toString() const {
-	sprintf_s(info,"TILE[%d,%d]",row,col);
+string ATile::toString() const {
+	sprintf_s(info,"ATile[%d,%d]",row,col);
 	return info;
 }
 
 Block::Block( enum COMPANY cc ):c(cc){}
 Block::Block(){}
-bool Block::hasTile( const Tile&  t){
-	return tiles.find(t) != tiles.end();
+bool Block::hasATile( const ATile&  t){
+	return ATiles.find(t) != ATiles.end();
 }
 
-void Block::addTile( const Tile&  t){
-	tiles.insert( t );
+void Block::addATile( const ATile&  t){
+	ATiles.insert( t );
 }
 //why block would have no company setup at all?
 bool Block::hasCompany(){
@@ -57,17 +57,17 @@ bool Block::operator==( const Block& rhs )const{
 
 
 void Block::mergeWith( Block other ){
-	for( auto it=other.tiles.begin(); it!=other.tiles.end(); ++it ){
-		tiles.insert(*it);
+	for( auto it=other.ATiles.begin(); it!=other.ATiles.end(); ++it ){
+		ATiles.insert(*it);
 	}
 }
 
 string Block::toString()const{
-	string tilesinfo;
-	for( auto it=tiles.begin(); it!=tiles.end(); ++it){
-		tilesinfo += it->toString() + " ";
+	string ATilesinfo;
+	for( auto it=ATiles.begin(); it!=ATiles.end(); ++it){
+		ATilesinfo += it->toString() + " ";
 	}
-	sprintf_s(info,"BLOCK COMPANY[%s] WITH TILEs[%s]", COMPANYNAME[c], tilesinfo.c_str() );
+	sprintf_s(info,"BLOCK COMPANY[%s] WITH ATiles[%s]", COMPANYNAME[c], ATilesinfo.c_str() );
 	return info;
 }
 
@@ -115,28 +115,28 @@ void Player::debitCash( int amount ){
 	cash += amount;
 }
 
-void Player::getAllocatedTiles(const set<Tile>& t ){
-	tiles = t;
+void Player::getAllocatedATiles(const set<ATile>& t ){
+	ATiles = t;
 }
 
 void Player::addStock( enum COMPANY c, int count){
 	stocks[c]+=count;
 }
 
-void Player::removeTile( const Tile& t ){
-	tiles.erase( t );
+void Player::removeATile( const ATile& t ){
+	ATiles.erase( t );
 }
 
-void Player::addTile( const Tile& t ){
-	tiles.insert( t );
+void Player::addATile( const ATile& t ){
+	ATiles.insert( t );
 }
 
-bool Player::hasTile( const Tile& t )const {
-	return tiles.find( t ) != tiles.end();
+bool Player::hasATile( const ATile& t )const {
+	return ATiles.find( t ) != ATiles.end();
 }
 
-int Player::tileCount()const{
-	return tiles.size();
+int Player::ATileCount()const{
+	return ATiles.size();
 }
 bool Player::hasStock( const enum COMPANY c ) const{
 	return stocks[c] > 0 ;
@@ -158,15 +158,15 @@ string Player::toString(){
 	return info;
 }
 
-MergeEvent::MergeEvent( vector<Block>& allblocks, const Tile& newTile ){
-	int x = newTile.row;
-	int y = newTile.col;
+MergeEvent::MergeEvent( vector<Block>& allblocks, const ATile& newATile ){
+	int x = newATile.row;
+	int y = newATile.col;
 	//memset( adjblocks, 0, sizeof(adjblocks) );
 	adjblocks[0]=0,adjblocks[1]=0,adjblocks[2]=0,adjblocks[3]=0;
-	if( x-1>=0 )	adjblocks[0] = getBlockWithTile( allblocks, Tile(x-1,y));
-	if( y-1>=0 )	adjblocks[1] = getBlockWithTile( allblocks, Tile(x,y-1));
-	if( x+1<HEIGH ) adjblocks[2] = getBlockWithTile( allblocks, Tile(x+1,y));
-	if( y+1<WIDTH ) adjblocks[3] = getBlockWithTile( allblocks, Tile(x,y+1));
+	if( x-1>=0 )	adjblocks[0] = getBlockWithATile( allblocks, ATile(x-1,y));
+	if( y-1>=0 )	adjblocks[1] = getBlockWithATile( allblocks, ATile(x,y-1));
+	if( x+1<HEIGH ) adjblocks[2] = getBlockWithATile( allblocks, ATile(x+1,y));
+	if( y+1<WIDTH ) adjblocks[3] = getBlockWithATile( allblocks, ATile(x,y+1));
 
 	//vector<Block> sorted_blocks;
 	for( int j=0; j<4; j++ ){
@@ -175,7 +175,7 @@ MergeEvent::MergeEvent( vector<Block>& allblocks, const Tile& newTile ){
 			adjcompanies.insert( adjblocks[j]->c );
 			int i=sorted_blocks.size() -1;
 			for(  ; i>=0; i-- ){//insertion sort
-				if( sorted_blocks[i]->tiles.size() < adjblocks[j]->tiles.size() ){
+				if( sorted_blocks[i]->ATiles.size() < adjblocks[j]->ATiles.size() ){
 					sorted_blocks[i+1]= sorted_blocks[i];
 				}
 				else break;
@@ -191,7 +191,7 @@ MergeEvent::MergeEvent( vector<Block>& allblocks, const Tile& newTile ){
 					index = -1 ;
 					break;
 				}
-				if( ccb->tiles.size() < sorted_blocks[i]->tiles.size() ){
+				if( ccb->ATiles.size() < sorted_blocks[i]->ATiles.size() ){
 					index = i;
 					break;
 				}
@@ -209,11 +209,11 @@ bool GameStatus::isCompanyAvailable( const COMPANY& c )const{
 	if(c>=0 && c<=NUMBER_OF_STOCKS )return pbd->stocktable.available[c] != 0;
 }
 
-Block* MergeEvent::getBlockWithTile( vector<Block>& allblocks, Tile& newTile){
+Block* MergeEvent::getBlockWithATile( vector<Block>& allblocks, ATile& newATile){
 	int n = allblocks.size(), i=0;
 	for( i=0; i<n; i++ ){
 		Block& b = allblocks[i];
-		if( b.hasTile( newTile ) ) return &b;
+		if( b.hasATile( newATile ) ) return &b;
 	}
 	return 0;
 }
@@ -239,8 +239,8 @@ void Game::initGame(){
 	int i=0,j=0;
 	for( i=0; i<WIDTH; i++ )
 		for( j=0; j<HEIGH; j++ )
-			alltiles.push_back( Tile(i,j) );
-	random_shuffle ( alltiles.begin(), alltiles.end() );
+			allATiles.push_back( ATile(i,j) );
+	random_shuffle ( allATiles.begin(), allATiles.end() );
 	//StockPriceTable::setupStockPriceTable( stocks )
 }
 
@@ -248,14 +248,14 @@ void Game::addPlayer( Player* player ){
 	if( players.size() < MAX_PLAYER_SIZE ) players.push_back( player );
 }
 
-void Game::allocatePlayerOneTile( Player* p ){
-	if( alltiles.size() > 0 ){
-		p->addTile( alltiles.back() );
-		alltiles.pop_back();
+void Game::allocatePlayerOneATile( Player* p ){
+	if( allATiles.size() > 0 ){
+		p->addATile( allATiles.back() );
+		allATiles.pop_back();
 	}
 }
 
-void Game::initPlayerWithTiles(){
+void Game::initPlayerWithATiles(){
 	vector<string> pids;
 	for_each( players.begin(), players.end(),[&pids]( Player* p){
 		pids.push_back(p->id);
@@ -265,8 +265,8 @@ void Game::initPlayerWithTiles(){
 	});
 
 	for_each( players.begin(), players.end(),[this]( Player* p){
-		for( int j=0; j<NUMBER_OF_TILES_EACH; j++ ){
-			this->allocatePlayerOneTile(p);
+		for( int j=0; j<NUMBER_OF_ATileS_EACH; j++ ){
+			this->allocatePlayerOneATile(p);
 		}
 	});
 }
@@ -275,31 +275,31 @@ bool Game::isEndOfGame(){
 	bool allBlockGT11 = true;
 	bool oneBlockGE41 = false;
 	int companyNumber = 0;
-	bool hasnotile = ( alltiles.size() == 0 );
+	bool hasnoATile = ( allATiles.size() == 0 );
 
 	for_each( allblocks.begin(), allblocks.end(), [&allBlockGT11,&oneBlockGE41](Block& b){
-		if( b.tiles.size() < 11 ) allBlockGT11 = false;
-		else if( b.tiles.size() >= 41 ) oneBlockGE41 = true;
+		if( b.ATiles.size() < 11 ) allBlockGT11 = false;
+		else if( b.ATiles.size() >= 41 ) oneBlockGE41 = true;
 	});
 
 	if( allblocks.size() == 0 ) allBlockGT11 = false;
 
-	bool oneplayerhasnotile = true;
-	for_each( players.begin(), players.end(), [&oneplayerhasnotile]( Player* p ){
-		if( p->tileCount() > 0 ){
-			oneplayerhasnotile=false;
+	bool oneplayerhasnoATile = true;
+	for_each( players.begin(), players.end(), [&oneplayerhasnoATile]( Player* p ){
+		if( p->ATileCount() > 0 ){
+			oneplayerhasnoATile=false;
 		}
 	});
 
-	return oneBlockGE41 || allBlockGT11 || oneplayerhasnotile || hasnotile;
+	return oneBlockGE41 || allBlockGT11 || oneplayerhasnoATile || hasnoATile;
 }
 
-const Tile Game::askPlayerToPlaceTile(  Player* p ){
-	const PlaceTileOrder od = p->pai->decidePlaceTile( gs );
-	Tile result = od.t;
+const ATile Game::askPlayerToPlaceATile(  Player* p ){
+	const PlaceATileOrder od = p->pai->decidePlaceATile( gs );
+	ATile result = od.t;
 	if( od.execute( this, p ) ){
 		for_each( players.begin(), players.end(), [&p,&od](Player* pp ){
-			pp->pai->fyiPlayerPlaceTileOrder( p->id , od );
+			pp->pai->fyiPlayerPlaceATileOrder( p->id , od );
 		});
 	}
 	return result;
@@ -314,7 +314,7 @@ void Game::askPlayerToBuyStock(  Player* p ){
 	}
 }
 
-void Game::askPlayerToSetupCompany(  Player* p, const Tile& t ){
+void Game::askPlayerToSetupCompany(  Player* p, const ATile& t ){
 	SetupCompanyOrder od = p->pai->decideSetupCompany( gs );
 	if( od.execute( this, p ) ){
 		for_each( players.begin(), players.end(), [&p,&od](Player* pp ){
@@ -323,7 +323,7 @@ void Game::askPlayerToSetupCompany(  Player* p, const Tile& t ){
 	}
 
 	Block nb(od.c);
-	nb.addTile( t );
+	nb.addATile( t );
 	allblocks.push_back( nb );
 }
 
@@ -353,7 +353,7 @@ void Game::askPlayersToConvertStock( const vector<Player*> shareholders ){
 	
 }
 
-void Game::doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, Tile& via ){
+void Game::doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via ){
 	gs.AcquiringBlock = AcquiringBlock;
 	gs.AcquiredBlock  = AcquiredBlock;
 	vector<Player* > shareholders;
@@ -372,7 +372,7 @@ void Game::doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, Tile& via ){
 	stocktable.markCompanyAvailable( stakecompany, 1 );
 
 	AcquiringBlock.mergeWith( AcquiredBlock );
-	AcquiringBlock.addTile( via );
+	AcquiringBlock.addATile( via );
 	for( auto it=allblocks.begin(); it != allblocks.end(); ++it ){//clear the acquired block from the table
 		if( &(*it) == &AcquiredBlock){
 			allblocks.erase(it);
@@ -439,14 +439,14 @@ void Game::allocateBonusFor( enum COMPANY c , const vector<Player*> shs ){
 
 void Game::runTheGame(){
 
-	initPlayerWithTiles();
+	initPlayerWithATiles();
 	unsigned int i=0,j=0,k=0;
 		
 	while( !isEndOfGame() ){
 		for( i=0; i<players.size(); i++ ){
 			Player* player = players[i];
-			Tile pt = askPlayerToPlaceTile( player );
-			current_tile = pt;
+			ATile pt = askPlayerToPlaceATile( player );
+			current_ATile = pt;
 
 			MergeEvent me( allblocks, pt );
 			if( me.isValidMerger() ){
@@ -464,11 +464,11 @@ void Game::runTheGame(){
 			}
 			else if( me.isAdjToOneBlock() ){
 				Block* adjBlock = me.sorted_blocks[0];
-				adjBlock->addTile( pt );
+				adjBlock->addATile( pt );
 				askPlayerToBuyStock(player);
 			}
 
-			allocatePlayerOneTile( player );
+			allocatePlayerOneATile( player );
 			statistics();
 			round++;
 		}
@@ -481,11 +481,11 @@ void Game::statistics(){
 	memset( board, '.', sizeof( board ) );
 	for( int i=0; i<allblocks.size(); i++ ){
 		Block& b = allblocks[i];
-		for( auto it=b.tiles.begin(); it!=b.tiles.end(); ++it ){
+		for( auto it=b.ATiles.begin(); it!=b.ATiles.end(); ++it ){
 			board[ it->row ][ it->col ] = COMPANYNAME[b.c][0];
 		}
 	}
-	board[current_tile.row][current_tile.col] = 'X';
+	board[current_ATile.row][current_ATile.col] = 'X';
 	cout << "=============================Round:"<< round << "=================================" << endl;
 	cout << "=============================Board Begins=================================" << endl;
 	for( int i=0; i<WIDTH; i++ ){
@@ -506,9 +506,9 @@ void Game::statistics(){
 
 
 GameStatus::GameStatus( ){}
-const vector<Tile> GameStatus::getAvailableTiles() const{/*TBD*/
-	vector<Tile> atiles = pbd->alltiles;
-	return atiles;
+const vector<ATile> GameStatus::getAvailableATiles() const{/*TBD*/
+	vector<ATile> aATiles = pbd->allATiles;
+	return aATiles;
 }
 
 const vector<Block> GameStatus::getAllBlocks()const{
