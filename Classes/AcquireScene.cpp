@@ -23,8 +23,8 @@ void AcquireScene::initGameUI()
     CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 	int dx = op.x + BLOCK_SIZE;
 	int dy = op.y + sz.height - BLOCK_SIZE * HEIGH + BLOCK_SIZE/2;
-	for( int i=0; i<HEIGH; i++ ){
-		for( int j=0; j<WIDTH; j++ ){
+	for( int i=0; i<HEIGH; i++ ){//row
+		for( int j=0; j<WIDTH; j++ ){//col
 			ATileLabel* at = ATileLabel::create();
 			at->setPosition( ccp(  j*BLOCK_SIZE+dx , i*BLOCK_SIZE+dy ) );
 			at->initTile(i,j);
@@ -128,8 +128,10 @@ bool AcquireScene::init()
 
 void AcquireScene::menuClickCallBack(CCObject* pSender)
 {
-	pGame->runTheGameOneRound();
-	updateGameRender();
+	if( !pGame->isEndOfGame() ){
+		pGame->runTheGameOneRound();
+		updateGameRender();
+	}
 }
 
 void AcquireScene::menuCloseCallback(CCObject* pSender)

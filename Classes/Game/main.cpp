@@ -53,19 +53,31 @@ void test_placeADJATile(){
 	cout << "BK Expected 1 Actual:" << me4.sorted_blocks.size() << endl;
 		
 }
-int main(){
+int main1(){
 	test_placeADJATile();
 	system("pause");
 	return 0;
 }
 
-int main1(){
+int main(){
 	Game g;
+	DefaultAI ai1("N1");
+	DefaultAI ai2("N2");
 
+	Player a( & ai1 );
+	ai1.setPlayer( &a );
+
+	Player b( & ai2 );
+	ai2.setPlayer( &b );
+
+	g.addPlayer( &a );
+	g.addPlayer( &b );
 
 	g.runTheGame();
 
 	system("pause");
+
+	return 0;
 
 	return 0;
 }

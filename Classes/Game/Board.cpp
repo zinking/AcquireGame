@@ -150,13 +150,13 @@ string Player::toString(){
 
 MergeEvent::MergeEvent( vector<Block>& allblocks, const ATile& na ){
 	newATile = na;
-	int x = newATile.row;
-	int y = newATile.col;
+	int y = newATile.row;
+	int x = newATile.col;
 	adjblocks[0]=0,adjblocks[1]=0,adjblocks[2]=0,adjblocks[3]=0;
-	if( x-1>=0 )	adjblocks[0] = getBlockWithATile( allblocks, ATile(x-1,y));
-	if( y-1>=0 )	adjblocks[1] = getBlockWithATile( allblocks, ATile(x,y-1));
-	if( x+1<HEIGH ) adjblocks[2] = getBlockWithATile( allblocks, ATile(x+1,y));
-	if( y+1<WIDTH ) adjblocks[3] = getBlockWithATile( allblocks, ATile(x,y+1));
+	if( x-1>=0 )	adjblocks[0] = getBlockWithATile( allblocks, ATile(y,x-1));
+	if( y-1>=0 )	adjblocks[1] = getBlockWithATile( allblocks, ATile(y-1,x));
+	if( x+1<WIDTH ) adjblocks[2] = getBlockWithATile( allblocks, ATile(y,x+1));
+	if( y+1<HEIGH ) adjblocks[3] = getBlockWithATile( allblocks, ATile(y+1,x));
 
 	for( int j=0; j<4; j++ ){
 		Block* ccb = adjblocks[j];
@@ -213,8 +213,8 @@ Game::Game( ){
 
 void Game::initGame(){
 	int i=0,j=0;
-	for( i=0; i<WIDTH; i++ )
-		for( j=0; j<HEIGH; j++ )
+	for( i=0; i<HEIGH; i++ )
+		for( j=0; j<WIDTH; j++ )
 			allATiles.push_back( ATile(i,j) );
 	random_shuffle ( allATiles.begin(), allATiles.end() );
 }
@@ -295,11 +295,12 @@ void Game::askPlayerToSetupCompany(  Player* p, const ATile& t ){
 		for_each( players.begin(), players.end(), [&p,&od](Player* pp ){
 			pp->pai->fyiPlayerSetupCompanyOrder( p->id , od );
 		});
+
+		Block nb(od.c);
+		nb.addATile( t );
+		allblocks.push_back( nb );
 	}
 
-	Block nb(od.c);
-	nb.addATile( t );
-	allblocks.push_back( nb );
 }
 
 void Game::askPlayersToSellStock( const vector<Player*> shareholders ){
@@ -456,7 +457,7 @@ void Game::runTheGame(){
 }
 
 void Game::statistics(){
-	char board[WIDTH][HEIGH];
+	char board[HEIGH][WIDTH];
 	memset( board, '.', sizeof( board ) );
 	for( int i=0; i<allblocks.size(); i++ ){
 		Block& b = allblocks[i];
@@ -467,8 +468,8 @@ void Game::statistics(){
 	board[current_ATile.row][current_ATile.col] = 'X';
 	cout << "=============================Round:"<< round << "=================================" << endl;
 	cout << "=============================Board Begins=================================" << endl;
-	for( int i=0; i<WIDTH; i++ ){
-		for( int j=0; j<HEIGH; j++ ){
+	for( int i=0; i<HEIGH; i++ ){
+		for( int j=0; j<WIDTH; j++ ){
 			cout << board[i][j];
 		}
 		cout << endl;
@@ -496,7 +497,7 @@ const vector<COMPANY> GameStatus::getAllAvailableCompanies()const{
 }
 
 const string GameStatus::toString()const{
-	char info[1000];
+	char info[1000]="GAME STATUS";
 	return info;
 }
 
