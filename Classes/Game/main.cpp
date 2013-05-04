@@ -5,13 +5,10 @@
 using namespace std;
 void test_placeADJATile(){
 	Block b;
-	//enum COMPANY c=(COMPANY)0;
 	b.addATile( ATile(0,0) );
-	//b.c = (enum COMPANY)0;
 	Game g;
 	g.allblocks.push_back( b );
 	MergeEvent me( g.allblocks, ATile(0,1) );
-	//cout << << endl;
 	cout << "Expected 1, Actual:" << me.sorted_blocks.size() << endl;
 	Block b2;
 	enum COMPANY c=(COMPANY)1;
@@ -40,28 +37,31 @@ void test_placeADJATile(){
 		 << me3.adjblocks[1] << " "
 		 << me3.adjblocks[2] << " "
 		 << me3.adjblocks[3] << endl;
-		
 
+	g.allblocks.clear();
+	Block b4;
+	b4.addATile( ATile( 0, 0 ) );
+	b4.c = WORLDWIDE;
+	g.allblocks.push_back( b4 );
+	Block b5;
+	b5.addATile( ATile( 1, 1 ) );
+	b5.c = SACKSON;
+	g.allblocks.push_back( b5 );
+	MergeEvent me4( g.allblocks, ATile( 0,1 ) );
+	cout << "BK Expected 2 Actual:" << me4.sorted_blocks.size() << endl;
+	g.doAcquire( me4 );
+	cout << "BK Expected 1 Actual:" << me4.sorted_blocks.size() << endl;
+		
 }
-int main1(){
+int main(){
 	test_placeADJATile();
 	system("pause");
 	return 0;
 }
 
-int main(){
+int main1(){
 	Game g;
-	DefaultAI ai1("N1");
-	DefaultAI ai2("N2");
 
-	Player a( & ai1 );
-	ai1.setPlayer( &a );
-
-	Player b( & ai2 );
-	ai2.setPlayer( &b );
-
-	g.addPlayer( &a );
-	g.addPlayer( &b );
 
 	g.runTheGame();
 

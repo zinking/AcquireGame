@@ -1,4 +1,5 @@
 #include "definitions.h"
 
 char COMPANYNAME[NUMBER_OF_STOCKS][20]={"WORLDWIDE","SACKSON","FESTIVAL","IMPERIAL","AMERICAN","CONTINENTAL","TOWER"};
+char COMPANYSHORTNAME[NUMBER_OF_STOCKS][2]={"W","S","F","I","A","C","T"};
 char info[2000]="";

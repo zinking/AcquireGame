@@ -11,16 +11,16 @@ struct ATile{
 	int col;
 	ATile( int r, int c );
 	ATile();
-	//int hashCode(){ return row*31+col; }
 	bool operator==( const ATile& rhs ) const;
 	bool operator<(  const ATile& rhs ) const;
-	string toString() const ;
+	string toString() const;
+	string getCaption() const;
 };
 
 struct Block{
-	enum COMPANY  c;
+	COMPANY  c;
 	set<ATile> ATiles;
-	Block( enum COMPANY cc );
+	Block( COMPANY cc );
 	Block();
 	bool hasATile( const ATile& t );
 	void addATile( const ATile& t );
@@ -32,7 +32,7 @@ struct Block{
 };
 
 struct PlayerAI;
-struct  Player{
+struct Player{
 	string id;
 	PlayerAI* pai;//by const I mean this pointer cannot be changed
 	Player( PlayerAI* pai );
@@ -59,9 +59,7 @@ struct  Player{
 struct MergeEvent{
 	Block* adjblocks[4];
 	vector<Block*> sorted_blocks;
-	//int largest_block_index;
-	//set<COMPANY> adjcompanies;
-
+	ATile newATile;
 	MergeEvent( vector<Block>& allBlocks, const ATile& newATile );
 	Block* getBlockWithATile( vector<Block>& allblocks, ATile& newATile);
 	bool isValidMerger()const;
@@ -75,7 +73,6 @@ struct StockTable{
 	int minorbonus[NUMBER_OF_STOCKS];
 	int stockamont[NUMBER_OF_STOCKS];
 	int available[NUMBER_OF_STOCKS];
-	//int stockavail[NUMBER_OF_STOCKS];
 
 	StockTable();
 
@@ -105,8 +102,8 @@ struct GameStatus{
 public:
 	GameStatus( );
 	/*this method intends to tell player what blocks are available now*/
-	const vector<ATile>  getAvailableATiles() const;
-	const vector<Block> getAllBlocks()const;
+	const vector<ATile>   getAvailableATiles() const;
+	const vector<Block>   getAllBlocks()const;
 	const vector<COMPANY> getAllAvailableCompanies()const;
 	const string toString()const;
 	int getStockPrice( const COMPANY& c )const;
@@ -115,8 +112,6 @@ public:
 };
 
 struct Game{
-	//int board[WIDTH][HEIGH];
-	//static const int STOCK_SIZE=25;
 	int stocks[NUMBER_OF_STOCKS];
 	vector<ATile> allATiles;
 	vector<Block> allblocks;
@@ -138,8 +133,10 @@ struct Game{
 	void askPlayersToSellStock( const vector<Player*> shareholders );
 	void askPlayersToConvertStock( const vector<Player*> shareholders );
 	void runTheGame();
+	void runTheGameOneRound();
 	vector<int> getAvailableNewCompanies();
-	void doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via );
+	void doAcquireOnce( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via );
+	void doAcquire(MergeEvent& me );
 	void allocateBonusFor( enum COMPANY c , const vector<Player*> shs );
 	void statistics();
 };

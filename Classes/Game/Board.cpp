@@ -37,7 +37,12 @@ string ATile::toString() const {
 	return info;
 }
 
-Block::Block( enum COMPANY cc ):c(cc){}
+string ATile::getCaption() const {
+	sprintf_s(info,"%c%d",'A'+row,col+1);
+	return info;
+}
+
+Block::Block( COMPANY cc ):c(cc){}
 Block::Block(){}
 bool Block::hasATile( const ATile&  t){
 	return ATiles.find(t) != ATiles.end();
@@ -72,19 +77,12 @@ string Block::toString()const{
 }
 
 StockTable::StockTable(){
-	//memset( stockprice, 200,  sizeof( stockprice ) );
-	//stockprice[NUMBER_OF_STOCKS]={200,200,200,200,200,200,200};
-	//memset( majorbonus, 2000, sizeof( majorbonus ) );
-	//memset( minorbonus, 1500, sizeof( minorbonus ) );
-	//memset( available,  1,    sizeof( available  ) );
 	for( int i=0; i<NUMBER_OF_STOCKS; i++ ){
 		stockprice[i] = 200;
 		majorbonus[i] = 2000;
 		minorbonus[i] = 1500;
-		available[i]  = 1; //meaning if the company could be setup when = 1 and stock not purchasable at mean time
-		//stockavail[i] = 0;
+		available[i]  = 1; 
 	}
-	//memset( stockprice, 200,  sizeof( stockprice ) );
 }
 
 Player::Player( PlayerAI* pai ){
@@ -114,38 +112,30 @@ int Player::getCash() const {
 void Player::debitCash( int amount ){
 	cash += amount;
 }
-
 void Player::getAllocatedATiles(const set<ATile>& t ){
 	ATiles = t;
 }
-
-void Player::addStock( enum COMPANY c, int count){
+void Player::addStock( COMPANY c, int count){
 	stocks[c]+=count;
 }
-
 void Player::removeATile( const ATile& t ){
 	ATiles.erase( t );
 }
-
 void Player::addATile( const ATile& t ){
 	ATiles.insert( t );
 }
-
 bool Player::hasATile( const ATile& t )const {
 	return ATiles.find( t ) != ATiles.end();
 }
-
 int Player::ATileCount()const{
 	return ATiles.size();
 }
-bool Player::hasStock( const enum COMPANY c ) const{
+bool Player::hasStock( const  COMPANY c ) const{
 	return stocks[c] > 0 ;
 }
-
-int Player::getStockAmt( const enum COMPANY c ) const{
+int Player::getStockAmt( const COMPANY c ) const{
 	return stocks[c]  ;
 }
-
 string Player::toString(){
 	string shstr;
 	for( int i=0;i<NUMBER_OF_STOCKS; i++ ){
@@ -158,31 +148,17 @@ string Player::toString(){
 	return info;
 }
 
-MergeEvent::MergeEvent( vector<Block>& allblocks, const ATile& newATile ){
+MergeEvent::MergeEvent( vector<Block>& allblocks, const ATile& na ){
+	newATile = na;
 	int x = newATile.row;
 	int y = newATile.col;
-	//memset( adjblocks, 0, sizeof(adjblocks) );
 	adjblocks[0]=0,adjblocks[1]=0,adjblocks[2]=0,adjblocks[3]=0;
 	if( x-1>=0 )	adjblocks[0] = getBlockWithATile( allblocks, ATile(x-1,y));
 	if( y-1>=0 )	adjblocks[1] = getBlockWithATile( allblocks, ATile(x,y-1));
 	if( x+1<HEIGH ) adjblocks[2] = getBlockWithATile( allblocks, ATile(x+1,y));
 	if( y+1<WIDTH ) adjblocks[3] = getBlockWithATile( allblocks, ATile(x,y+1));
 
-	//vector<Block> sorted_blocks;
 	for( int j=0; j<4; j++ ){
-		/*
-		if( adjblocks[j]!=0 && adjcompanies.find( adjblocks[j]->c ) == adjcompanies.end() ) {
-			adjcompanies.insert( adjblocks[j]->c );
-			int i=sorted_blocks.size() -1;
-			for(  ; i>=0; i-- ){//insertion sort
-				if( sorted_blocks[i]->ATiles.size() < adjblocks[j]->ATiles.size() ){
-					sorted_blocks[i+1]= sorted_blocks[i];
-				}
-				else break;
-			}
-			//sorted_blocks[i+1] = adjblocks[j];
-			sorted_blocks.insert( sorted_blocks.begin()+i+1,adjblocks[j] );
-		}*/
 		Block* ccb = adjblocks[j];
 		if( ccb != 0 ){
 			int index = 0;
@@ -241,7 +217,6 @@ void Game::initGame(){
 		for( j=0; j<HEIGH; j++ )
 			allATiles.push_back( ATile(i,j) );
 	random_shuffle ( allATiles.begin(), allATiles.end() );
-	//StockPriceTable::setupStockPriceTable( stocks )
 }
 
 void Game::addPlayer( Player* player ){
@@ -353,7 +328,17 @@ void Game::askPlayersToConvertStock( const vector<Player*> shareholders ){
 	
 }
 
-void Game::doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via ){
+void Game::doAcquire( MergeEvent& me  ){
+	vector<Block*>& blocks_will_be_merged = me.sorted_blocks;
+	while( blocks_will_be_merged.size() > 1 ){
+		Block& AcquiringBlock = *blocks_will_be_merged[0];
+		Block& AcquiredBlock  = *blocks_will_be_merged[1];
+		doAcquireOnce( AcquiringBlock, AcquiredBlock, me.newATile );
+		blocks_will_be_merged.erase( find(blocks_will_be_merged.begin(), blocks_will_be_merged.end(), &AcquiredBlock ) );
+	}
+}
+
+void Game::doAcquireOnce( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via ){
 	gs.AcquiringBlock = AcquiringBlock;
 	gs.AcquiredBlock  = AcquiredBlock;
 	vector<Player* > shareholders;
@@ -368,7 +353,6 @@ void Game::doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via ){
 	allocateBonusFor(  AcquiredBlock.c, shareholders );
 	askPlayersToSellStock( shareholders );
 	askPlayersToConvertStock( shareholders );
-
 	stocktable.markCompanyAvailable( stakecompany, 1 );
 
 	AcquiringBlock.mergeWith( AcquiredBlock );
@@ -383,7 +367,7 @@ void Game::doAcquire( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via ){
 	
 }
 
-void Game::allocateBonusFor( enum COMPANY c , const vector<Player*> shs ){
+void Game::allocateBonusFor( COMPANY c , const vector<Player*> shs ){
 	vector<Player*> sh1;
 	vector<Player*> sh2;
 	vector<int> stockamts;
@@ -416,7 +400,7 @@ void Game::allocateBonusFor( enum COMPANY c , const vector<Player*> shs ){
 		int cashshare = stocktable.majorbonus[ c ] / sh1.size() ;
 		for_each( sh1.begin(), sh1.end(), [&cashshare]( Player* sh ){
 			sh->debitCash( cashshare );
-			sprintf_s( info, "PLAYER[%s] shared [%d] major share bonus]", sh->toString().c_str(), cashshare);
+			sprintf_s( info, "PLAYER[%s] shared [%d] major share bonus", sh->toString().c_str(), cashshare);
 			cout << info << endl;
 		});
 	}
@@ -437,43 +421,38 @@ void Game::allocateBonusFor( enum COMPANY c , const vector<Player*> shs ){
 
 }
 
-void Game::runTheGame(){
-
-	initPlayerWithATiles();
+void Game::runTheGameOneRound(){
 	unsigned int i=0,j=0,k=0;
-		
-	while( !isEndOfGame() ){
-		for( i=0; i<players.size(); i++ ){
-			Player* player = players[i];
-			ATile pt = askPlayerToPlaceATile( player );
-			current_ATile = pt;
+	for( i=0; i<players.size(); i++ ){
+		Player* player = players[i];
+		ATile pt = askPlayerToPlaceATile( player );
+		current_ATile = pt;
 
-			MergeEvent me( allblocks, pt );
-			if( me.isValidMerger() ){
-				vector<Block*>& blocks_will_be_merged = me.sorted_blocks;
-				while( blocks_will_be_merged.size() > 1 ){
-					Block& AcquiringBlock = *blocks_will_be_merged[0];
-					Block& AcquiredBlock  = *blocks_will_be_merged[1];
-					doAcquire( AcquiringBlock, AcquiredBlock, pt );
-					blocks_will_be_merged.erase( find(blocks_will_be_merged.begin(), blocks_will_be_merged.end(), &AcquiredBlock ) );
-				}
-			}
-			else if( me.isNewBlock() ){
-				askPlayerToSetupCompany(player, pt);
-				askPlayerToBuyStock(player);
-			}
-			else if( me.isAdjToOneBlock() ){
-				Block* adjBlock = me.sorted_blocks[0];
-				adjBlock->addATile( pt );
-				askPlayerToBuyStock(player);
-			}
-
-			allocatePlayerOneATile( player );
-			statistics();
-			round++;
+		MergeEvent me( allblocks, pt );
+		if( me.isValidMerger() ){
+			doAcquire( me );
 		}
+		else if( me.isNewBlock() ){
+			askPlayerToSetupCompany(player, pt);
+			askPlayerToBuyStock(player);
+		}
+		else if( me.isAdjToOneBlock() ){
+			Block* adjBlock = me.sorted_blocks[0];
+			adjBlock->addATile( pt );
+			askPlayerToBuyStock(player);
+		}
+
+		allocatePlayerOneATile( player );
+		statistics();
+		round++;
 	}
-		
+}
+
+void Game::runTheGame(){
+	initPlayerWithATiles();
+	while( !isEndOfGame() ){
+		runTheGameOneRound();
+	}
 }
 
 void Game::statistics(){
@@ -502,11 +481,8 @@ void Game::statistics(){
 	cout << "==========================================================================" << endl;
 }
 
-
-
-
 GameStatus::GameStatus( ){}
-const vector<ATile> GameStatus::getAvailableATiles() const{/*TBD*/
+const vector<ATile> GameStatus::getAvailableATiles() const{
 	vector<ATile> aATiles = pbd->allATiles;
 	return aATiles;
 }

@@ -1,115 +1,143 @@
 #include "AcquireScene.h"
-#include "AppMacros.h"
+
 
 USING_NS_CC;
 #include "Game/board.h"
 #include "Game/definitions.h"
+#include "Game/PlayerAI.h"
+#include "ATileSprite.h"
 
 
 
 CCScene* AcquireScene::scene()
 {
-    // 'scene' is an autorelease object
     CCScene *scene = CCScene::create();
-	
-    
-    // 'layer' is an autorelease object
     AcquireScene *layer = AcquireScene::create();
-
-    // add layer as a child to scene
     scene->addChild(layer);
-
-    // return the scene
     return scene;
 }
 
-int AcquireScene::render_board( )
+void AcquireScene::initGameUI()
 {
-	CCSprite* st = CCSprite::create("block.png");
-	CCPoint ptStart = ccp( 5,5 );
-	const int BLOCK_SIZE = 32;
-	for( int i=0; i<WIDTH; i++ ){
-		for( int j=0; j<HEIGH; j++ ){
-			CCSprite* pblock = CCSprite::create();
-			pblock->initWithTexture( st->getTexture() );
-			pblock->setPosition( ccp( i*BLOCK_SIZE, j*BLOCK_SIZE ) );
-			this->addChild(pblock, 0);
+	CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
+    CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
+	int dx = op.x + BLOCK_SIZE;
+	int dy = op.y + sz.height - BLOCK_SIZE * HEIGH + BLOCK_SIZE/2;
+	for( int i=0; i<HEIGH; i++ ){
+		for( int j=0; j<WIDTH; j++ ){
+			ATileLabel* at = ATileLabel::create();
+			at->setPosition( ccp(  j*BLOCK_SIZE+dx , i*BLOCK_SIZE+dy ) );
+			at->initTile(i,j);
+			ats[i][j] = at;
+			this->addChild(at);
 		}
 	}
-			
-	return 0;
+	for ( unsigned int i=0; i<pGame->players.size(); i++ ){
+		CCNode* player_node  = new CCNode;
+		player_node->setPosition(  op.x + BLOCK_SIZE/2, op.y + i*BLOCK_SIZE + BLOCK_SIZE/2 );
+		pcon.push_back( player_node );
+		this->addChild( player_node );
+	}
+	updateGameRender();
 }
 
-// on "init" you need to initialize your instance
+void AcquireScene::initGameLogic(){
+	pGame = new Game;
+	DefaultAI* pai1 = new DefaultAI("N1");
+	DefaultAI* pai2 = new DefaultAI("N2");
+
+	Player* pa = new Player(pai1);
+	pai1->setPlayer( pa );
+	Player* pb = new Player(pai2);
+	pai2->setPlayer( pb );
+
+	pGame->addPlayer( pa );
+	pGame->addPlayer( pb );
+
+	pGame->initPlayerWithATiles();
+}
+
+extern char COMPANYNAME[NUMBER_OF_STOCKS][20];
+
+void AcquireScene::updateGameRender(){
+	for( int i=0; i<pGame->players.size(); i++ ){
+		Player* p  = pGame->players[i];
+		CCNode* pn = pcon[i];
+		pn->removeAllChildren();
+		char caption[20];
+		int index = 0;
+		CCLabelTTF* pl;
+		for( auto it=p->ATiles.begin(); it!=p->ATiles.end(); ++it){
+			pl = CCLabelTTF::create( it->getCaption().c_str(), "Arial", 7, CCSize( BLOCK_SIZE,BLOCK_SIZE), kCCTextAlignmentCenter);
+			pl->setPositionX( index * BLOCK_SIZE );
+			pn->addChild( pl );
+			index++;
+		}
+		for( int i=0; i<NUMBER_OF_STOCKS; i++ ){
+			sprintf_s( caption, "%c:%d", COMPANYNAME[i][0], p->stocks[i] );
+			pl = CCLabelTTF::create( caption, "Arial", 7, CCSize( BLOCK_SIZE,BLOCK_SIZE), kCCTextAlignmentCenter);
+			pl->setPositionX( index * BLOCK_SIZE );
+			pn->addChild( pl );
+			index++;
+		}
+		sprintf(caption,"[%s] CASH:%d",p->getID(),p->getCash() );
+		pl = CCLabelTTF::create( caption, "Arial", 7, CCSize( BLOCK_SIZE,BLOCK_SIZE), kCCTextAlignmentCenter);
+		pl->setPositionX( index * BLOCK_SIZE );
+		pn->addChild( pl );
+	}
+
+	for( auto it=pGame->allblocks.begin(); it!=pGame->allblocks.end(); ++it ){
+		for( auto it2=it->ATiles.begin(); it2 != it->ATiles.end(); ++it2 ){
+			ATileLabel* pal = ats[ it2->row ][ it2->col ];
+			pal->updateCaption( it->c );
+		}
+	}
+}
+
 bool AcquireScene::init()
 {
-    //////////////////////////////
-    // 1. super init first
     if ( !CCLayer::init() )
     {
         return false;
     }
     
+	initGameLogic();
+	
+    CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
+    CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 
-	pGame = new Game;
-    CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
-    CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
-
-    /////////////////////////////
-    // 2. add a menu item with "X" image, which is clicked to quit the program
-    //    you may modify it.
-
-    // add a "close" icon to exit the progress. it's an autorelease object
-    CCMenuItemImage *pCloseItem = CCMenuItemImage::create(
-                                        "CloseNormal.png",
-                                        "CloseSelected.png",
-                                        this,
-                                        menu_selector(AcquireScene::menuCloseCallback));
+    CCMenuItemImage *pci = CCMenuItemImage::create(
+        "CloseNormal.png",
+        "CloseSelected.png",
+        this,
+        menu_selector(AcquireScene::menuClickCallBack)
+	);
     
-	pCloseItem->setPosition(ccp(origin.x + visibleSize.width - pCloseItem->getContentSize().width/2 ,
-                                origin.y + pCloseItem->getContentSize().height/2));
-
-    // create menu, it's an autorelease object
-    CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
+	pci->setPosition(ccp(op.x + sz.width - pci->getContentSize().width/2 ,op.y + pci->getContentSize().height/2));
+    CCMenu* pMenu = CCMenu::create(pci, NULL);
     pMenu->setPosition(CCPointZero);
     this->addChild(pMenu, 1);
 
-    /////////////////////////////
-    // 3. add your codes below...
+	this->setTouchEnabled(true);
+	//CCDirector::sharedDirector()->getTouchDispatcher()->addStandardDelegate(this,0);
 
-	//AcquireBoard b;
-	this->render_board();
-
-    // add a label shows "Hello World"
-    // create and initialize a label
-    
-    //CCLabelTTF* pLabel = CCLabelTTF::create("Hello World", "Arial", TITLE_FONT_SIZE);
-    
-    // position the label on the center of the screen
-   // pLabel->setPosition(ccp(origin.x + visibleSize.width/2,
-    //                        origin.y + visibleSize.height - pLabel->getContentSize().height));
-
-    // add the label as a child to this layer
-    //this->addChild(pLabel, 1);
-
-    // add "HelloWorld" splash screen"
-    //CCSprite* pSprite = CCSprite::create("HelloWorld.png");
-
-    // position the sprite on the center of the screen
-    //pSprite->setPosition(ccp(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-
-    // add the sprite as a child to this layer
-    //this->addChild(pSprite, 0);
+	initGameUI();
     
     return true;
 }
 
+void AcquireScene::menuClickCallBack(CCObject* pSender)
+{
+	pGame->runTheGameOneRound();
+	updateGameRender();
+}
 
 void AcquireScene::menuCloseCallback(CCObject* pSender)
 {
     CCDirector::sharedDirector()->end();
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    exit(0);
-#endif
+	#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+	exit(0);
+	#endif
 }
+

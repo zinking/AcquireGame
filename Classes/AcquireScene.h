@@ -2,24 +2,37 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
+#include "Game\definitions.h"
+#include <vector>
+#include "AppMacros.h"
 struct Game;
+class ATileSprite;
+class ATileLabel;
 
 class AcquireScene : public cocos2d::CCLayer
 {
 	Game* pGame;
+	//ATileSprite* ats[HEIGH][WIDTH];
+	ATileLabel* ats[HEIGH][WIDTH];
+	std::vector<CCNode*> pcon;
 public:
-    // Here's a difference. Method 'init' in cocos2d-x returns bool, instead of returning 'id' in cocos2d-iphone
     virtual bool init();  
+	void initGameLogic();
+	void initGameUI();
 
-    // there's no 'id' in cpp, so we recommend returning the class instance pointer
+	void updateGameRender();
     static cocos2d::CCScene* scene();
     
     // a selector callback
     void menuCloseCallback(CCObject* pSender);
-    
-    // implement the "static node()" method manually
+	void menuClickCallBack(CCObject* pSender);
+   
     CREATE_FUNC(AcquireScene);
-	int render_board( );
+	//LAYER_NODE_FUNC(TouchableLayer);  
+	bool ccTouchBegan(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){ return true; }
+	void ccTouchMoved(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
+	void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
+	
 };
 
 #endif // __HELLOWORLD_SCENE_H__

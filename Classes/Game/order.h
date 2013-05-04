@@ -2,6 +2,7 @@ struct GameStatus;
 struct Player;
 struct ATile;
 struct Game;
+#include "definitions.h"
 
 struct Order{
 	virtual bool execute( Game* b, Player* p)const{ return false; }
@@ -19,27 +20,27 @@ struct PlaceATileOrder:Order{
 };
 
 struct SellStockOrder:Order{
-	enum COMPANY c;
+	COMPANY c;
 	int  count;
-	SellStockOrder( enum COMPANY cc, int amt );
+	SellStockOrder( COMPANY cc, int amt );
 	string toString();
 	bool isValid( const GameStatus& gs, const Player& from )const;
 	bool execute( Game* g, Player* p )const;
 };
 
 struct ConvertStockOrder:Order{
-	enum COMPANY c;
+	COMPANY c;
 	int  count;
-	ConvertStockOrder( enum COMPANY cc, int amt );
+	ConvertStockOrder( COMPANY cc, int amt );
 	string toString();
 	bool isValid( const GameStatus& gs, const Player& from )const;
 	bool execute( Game* g, Player* p )const;
 };
 
 struct BuyStockOrder:Order{
-	enum COMPANY c;
+	COMPANY c;
 	int  count;
-	BuyStockOrder( enum COMPANY cc, int amt );
+	BuyStockOrder( COMPANY cc, int amt );
 	string toString();
 	bool isValid( const GameStatus& gs, const Player& from )const;
 	bool execute( Game* g, Player* p )const;

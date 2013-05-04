@@ -10,20 +10,20 @@ extern char info[200];
 
 
 /*
-HoldStockOrder::HoldStockOrder( enum COMPANY cc ):c(cc){}
+HoldStockOrder::HoldStockOrder( COMPANY cc ):c(cc){}
 string HoldStockOrder::toString(){
 	sprintf_s( info, "HOLD ORDER %s", COMPANYNAME[c]);
 	return info;
 }
 */
 
-BuyStockOrder::BuyStockOrder( enum COMPANY cc, int amt ):c(cc),count(amt){}
+BuyStockOrder::BuyStockOrder( COMPANY cc, int amt ):c(cc),count(amt){}
 string BuyStockOrder::toString(){
 	sprintf_s( info, "BUYSTOCK ORDER COMPANY[%s], COUNT[%d]", COMPANYNAME[c], count);
 	return info;
 }
 
-SellStockOrder::SellStockOrder( enum COMPANY cc, int amt ):c(cc),count(amt){}
+SellStockOrder::SellStockOrder( COMPANY cc, int amt ):c(cc),count(amt){}
 string SellStockOrder::toString(){
 	sprintf_s( info, "SELL ORDER COMPANY[%s], COUNT[%d]", COMPANYNAME[c], count);
 	return info;
