@@ -6,15 +6,17 @@
 #include <vector>
 #include "AppMacros.h"
 struct Game;
+struct Player;
 class ATileSprite;
 class ATileLabel;
 
 class AcquireScene : public cocos2d::CCLayer
 {
 	Game* pGame;
+	Player* pCur;
 	//ATileSprite* ats[HEIGH][WIDTH];
 	ATileLabel* ats[HEIGH][WIDTH];
-	std::vector<CCNode*> pcon;
+	std::vector<cocos2d::CCSprite*> pcon;
 public:
     virtual bool init();  
 	void initGameLogic();

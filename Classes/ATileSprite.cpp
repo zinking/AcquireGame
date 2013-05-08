@@ -54,29 +54,25 @@ void ATileSprite::draw(void)
 void ATileLabel::draw(){
 	CCNode::draw();
 	CCSize s = label->boundingBox().size;
+	ccDrawColor4B( 0, 102, 255, 255 );
+	//ccPointSize(3);
     ccDrawRect(label->boundingBox().origin, ccpAdd(label->boundingBox().origin, (ccp(s.width,s.height))));
 }
 void ATileLabel::initTile( int rr, int cc ){
 	char row= 'A'+rr;
     char caption[100];
 	sprintf_s( caption,"%c%d",row,cc+1);
-    label = CCLabelTTF::create( caption, "Arial", 7, CCSize( BLOCK_SIZE,BLOCK_SIZE), kCCTextAlignmentCenter,kCCVerticalTextAlignmentCenter);
+    label = CCLabelTTF::create( caption, "Arial", BLOCK_SIZE/2.5f, CCSize( BLOCK_SIZE,BLOCK_SIZE), kCCTextAlignmentCenter,kCCVerticalTextAlignmentCenter);
+	//label->initWithFile("dw.png");
 	this->addChild( label );
 }
 
 extern char COMPANYSHORTNAME[NUMBER_OF_STOCKS][2];
+extern ccColor3B COMPANYCOLOR[NUMBER_OF_STOCKS];
+extern ccColor4B COMPANYCOLOR4[NUMBER_OF_STOCKS];
 void ATileLabel::updateCaption( COMPANY c ){
 	//char COMPANYSHORTNAME[NUMBER_OF_STOCKS][2]={"W","S","F","I","A","C","T"};
-	static ccColor3B COMPANYCOLOR[NUMBER_OF_STOCKS]={ 
-		ccc3(255,0,0),   ccc3(0,255,0),   ccc3(0,0,255),
-		ccc3(255,255,0), ccc3(255,0,255), ccc3(0,255,255),
-		ccc3(255,255,255)
-	};
-	static ccColor4B COMPANYCOLOR4[NUMBER_OF_STOCKS]={ 
-		ccc4(255,0,0,100),   ccc4(0,255,0,100),   ccc4(0,0,255,100),
-		ccc4(255,255,0,100), ccc4(255,0,255,100), ccc4(0,255,255,100),
-		ccc4(255,128,255,100)
-	};
+
 	label->setString( COMPANYSHORTNAME[c] );
 	//label->setColor( COMPANYCOLOR[c] );
     CCLayerColor *color_layer = CCLayerColor::create(COMPANYCOLOR4[c]);

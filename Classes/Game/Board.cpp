@@ -424,29 +424,30 @@ void Game::allocateBonusFor( COMPANY c , const vector<Player*> shs ){
 
 void Game::runTheGameOneRound(){
 	unsigned int i=0,j=0,k=0;
-	for( i=0; i<players.size(); i++ ){
-		Player* player = players[i];
-		ATile pt = askPlayerToPlaceATile( player );
-		current_ATile = pt;
+	//for( i=0; i<players.size(); i++ ){
+	int plen = players.size();
+	Player* player = players[round % plen] ;
+	ATile pt = askPlayerToPlaceATile( player );
+	current_ATile = pt;
 
-		MergeEvent me( allblocks, pt );
-		if( me.isValidMerger() ){
-			doAcquire( me );
-		}
-		else if( me.isNewBlock() ){
-			askPlayerToSetupCompany(player, pt);
-			askPlayerToBuyStock(player);
-		}
-		else if( me.isAdjToOneBlock() ){
-			Block* adjBlock = me.sorted_blocks[0];
-			adjBlock->addATile( pt );
-			askPlayerToBuyStock(player);
-		}
-
-		allocatePlayerOneATile( player );
-		statistics();
-		round++;
+	MergeEvent me( allblocks, pt );
+	if( me.isValidMerger() ){
+		doAcquire( me );
 	}
+	else if( me.isNewBlock() ){
+		askPlayerToSetupCompany(player, pt);
+		askPlayerToBuyStock(player);
+	}
+	else if( me.isAdjToOneBlock() ){
+		Block* adjBlock = me.sorted_blocks[0];
+		adjBlock->addATile( pt );
+		askPlayerToBuyStock(player);
+	}
+
+	allocatePlayerOneATile( player );
+	statistics();
+	round++;
+	//}
 }
 
 void Game::runTheGame(){
