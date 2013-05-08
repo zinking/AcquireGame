@@ -162,13 +162,12 @@ MergeEvent::MergeEvent( vector<Block>& allblocks, const ATile& na ){
 		Block* ccb = adjblocks[j];
 		if( ccb != 0 ){
 			int index = 0;
-			for( int i=0; i<sorted_blocks.size(); i++ ){
-				if( ccb == sorted_blocks[i] ){
+			for(  ;index<sorted_blocks.size(); index++ ){
+				if( ccb == sorted_blocks[index] ){
 					index = -1 ;
 					break;
 				}
-				if( ccb->ATiles.size() < sorted_blocks[i]->ATiles.size() ){
-					index = i;
+				if( ccb->ATiles.size() > sorted_blocks[index]->ATiles.size() ){
 					break;
 				}
 			}
@@ -331,11 +330,23 @@ void Game::askPlayersToConvertStock( const vector<Player*> shareholders ){
 
 void Game::doAcquire( MergeEvent& me  ){
 	vector<Block*>& blocks_will_be_merged = me.sorted_blocks;
+	vector<COMPANY>  companies_to_be_removed;
 	while( blocks_will_be_merged.size() > 1 ){
 		Block& AcquiringBlock = *blocks_will_be_merged[0];
 		Block& AcquiredBlock  = *blocks_will_be_merged[1];
 		doAcquireOnce( AcquiringBlock, AcquiredBlock, me.newATile );
-		blocks_will_be_merged.erase( find(blocks_will_be_merged.begin(), blocks_will_be_merged.end(), &AcquiredBlock ) );
+		//blocks_will_be_merged.erase( find(blocks_will_be_merged.begin(), blocks_will_be_merged.end(), &AcquiredBlock ) );
+		blocks_will_be_merged.erase( blocks_will_be_merged.begin()+1 );
+		companies_to_be_removed.push_back(AcquiredBlock.c);
+	}
+
+	for( auto it2=companies_to_be_removed.begin(); it2 != companies_to_be_removed.end(); ++it2 ){
+		for( auto it=allblocks.begin(); it != allblocks.end(); ++it ){//clear the acquired block from the table
+			if( it->c == *it2 ){
+				allblocks.erase(it);
+				break;
+			}
+		}
 	}
 }
 
@@ -358,13 +369,6 @@ void Game::doAcquireOnce( Block& AcquiringBlock, Block& AcquiredBlock, ATile& vi
 
 	AcquiringBlock.mergeWith( AcquiredBlock );
 	AcquiringBlock.addATile( via );
-	for( auto it=allblocks.begin(); it != allblocks.end(); ++it ){//clear the acquired block from the table
-		if( &(*it) == &AcquiredBlock){
-			allblocks.erase(it);
-			break;
-		}
-	}
-	
 	
 }
 
