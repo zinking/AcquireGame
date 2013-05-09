@@ -115,6 +115,7 @@ bool AcquireScene::init()
 
 void AcquireScene::menuClickCallBack(CCObject* pSender)
 {
+	showStatusPopup();
 	/*
 	if( !pGame->isEndOfGame() ){
 		pGame->runTheGameOneRound();
@@ -130,6 +131,13 @@ void AcquireScene::menuCloseCallback(CCObject* pSender)
 	#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 	exit(0);
 	#endif
+}
+
+void AcquireScene::showStatusPopup()
+{
+	Popup *popup = Popup::node();
+	this->addChild(popup);
+	this->setTouchEnabled(false);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -221,3 +229,4 @@ bool PlayerLayer::init(){
 void PlayerLayer::setPlayerName( string name ){ 
 	id = name; 
 }
+

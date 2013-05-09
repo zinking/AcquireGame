@@ -2,11 +2,13 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
+#include "AppMacros.h"
 #include "Game\definitions.h"
 #include "Game\PlayerAI.h"
+#include "Popup.h"
 #include <vector>
 #include <string>
-#include "AppMacros.h"
+
 struct GameStatus;
 struct Player;
 class ATileSprite;
@@ -24,6 +26,7 @@ public:
 
 	void updateGameRender();
     static cocos2d::CCScene* scene();
+	void showStatusPopup();
 
 	void setGameStatus( GameStatus* gs );
     

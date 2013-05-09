@@ -128,6 +128,7 @@
     <ClCompile Include="..\Classes\Game\order.cpp" />
     <ClCompile Include="..\Classes\Game\Player.cpp" />
     <ClCompile Include="..\Classes\Game\PlayerAI.cpp" />
+    <ClCompile Include="..\Classes\Popup.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +142,7 @@
     <ClInclude Include="..\Classes\Game\Player.h" />
     <ClInclude Include="..\Classes\Game\PlayerAI.h" />
     <ClInclude Include="..\Classes\Game\Stock.h" />
+    <ClInclude Include="..\Classes\Popup.h" />
     <ClInclude Include="main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
