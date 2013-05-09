@@ -5,6 +5,7 @@ USING_NS_CC;
 #include "Game/board.h"
 #include "Game/definitions.h"
 #include "Game/PlayerAI.h"
+#include "Game/order.h"
 #include "ATileSprite.h"
 
 ccColor3B COMPANYCOLOR[NUMBER_OF_STOCKS]={ 
@@ -211,6 +212,14 @@ void PlayerLayer::setPlayerName( string name ){
 	id = name; 
 }
 
+const PlaceATileOrder PlayerLayer::decidePlaceATile( const GameStatus& bs ){
+	Popup *popup = Popup::node();
+	this->addChild(popup);
+	this->setTouchEnabled(false);
+	const ATile& t = *( pplayer->ATiles.begin() );
+	PlaceATileOrder od( t );
+	return od;
+}
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -224,6 +233,7 @@ bool AcquireGameScene::init()
 		addChild( pAcquireLayer,0 );
 
 		pPlayerLayer = PlayerLayer::create();
+		pPlayerLayer->setPlayerName("zhenw");
 		pPlayerLayer->retain();
 		addChild( pPlayerLayer,1 );
 
