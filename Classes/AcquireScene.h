@@ -10,6 +10,7 @@
 #include <string>
 
 struct GameStatus;
+struct Game;
 struct Player;
 class ATileSprite;
 class ATileLabel;
@@ -21,7 +22,6 @@ class AcquireScene : public cocos2d::CCLayer
 	std::vector<cocos2d::CCSprite*> pcon;
 public:
     virtual bool init();  
-	void initGameLogic();
 	void initGameUI();
 
 	void updateGameRender();
@@ -56,6 +56,22 @@ public:
 	void ccTouchMoved(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
 	void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
 	
+};
+
+class AcquireGameScene : public cocos2d::CCScene
+{
+	Game* pGame;
+	AcquireScene* pAcquireLayer;
+	PlayerLayer* pPlayerLayer;
+public:
+    AcquireGameScene() {};
+    ~AcquireGameScene();
+    bool init();
+    CREATE_FUNC(AcquireGameScene);
+
+	void updateGame( float dt);
+  
+    //CC_SYNTHESIZE_READONLY(GameOverLayer*, _layer, Layer);
 };
 
 #endif // __HELLOWORLD_SCENE_H__

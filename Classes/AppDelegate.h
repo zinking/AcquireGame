@@ -12,9 +12,7 @@ The reason for implement as private inheritance is to hide some interface call b
 */
 class  AppDelegate : private cocos2d::CCApplication
 {
-	Game* pGame;
-	AcquireScene* pAcquireLayer;
-	PlayerLayer* pPlayerLayer;
+
 public:
     AppDelegate();
     virtual ~AppDelegate();
@@ -37,8 +35,7 @@ public:
     @param  the pointer of the application
     */
     virtual void applicationWillEnterForeground();
-	void initGameLogic();
-	void initGameScene();
+
 };
 
 #endif // _APP_DELEGATE_H_

@@ -49,25 +49,6 @@ void AcquireScene::initGameUI()
 	updateGameRender();
 }
 
-void AcquireScene::initGameLogic(){
-	/*
-	pGame = new Game;
-	DefaultAI* pai1 = new DefaultAI("N1");
-	DefaultAI* pai2 = new DefaultAI("N2");
-
-	Player* pa = new Player(pai1);
-	pai1->setPlayer( pa );
-	Player* pb = new Player(pai2);
-	pai2->setPlayer( pb );
-
-	pCur = pa;
-
-	pGame->addPlayer( pa );
-	pGame->addPlayer( pb );
-
-	pGame->initPlayerWithATiles();
-	*/
-}
 
 extern char COMPANYNAME[NUMBER_OF_STOCKS][20];
 
@@ -230,3 +211,73 @@ void PlayerLayer::setPlayerName( string name ){
 	id = name; 
 }
 
+
+
+////////////////////////////////////////////////////////////////////////
+
+bool AcquireGameScene::init()
+{
+	if( CCScene::init() )
+	{
+		pAcquireLayer = AcquireScene::create();
+		pAcquireLayer->retain();
+		addChild( pAcquireLayer,0 );
+
+		pPlayerLayer = PlayerLayer::create();
+		pPlayerLayer->retain();
+		addChild( pPlayerLayer,1 );
+
+		pGame = new Game;
+		//DefaultAI* pai1 = new DefaultAI("N1");
+		pAcquireLayer->setGameStatus( &pGame->gs );
+
+		DefaultAI* pai2 = new DefaultAI("N2");
+
+		Player* pa = new Player(pPlayerLayer);
+		pPlayerLayer->setPlayer( pa );
+		Player* pb = new Player(pai2);
+		pai2->setPlayer( pb );
+
+
+		pGame->addPlayer( pa );
+		pGame->addPlayer( pb );
+
+		pGame->initPlayerWithATiles();
+
+		pAcquireLayer->initGameUI();
+		pPlayerLayer->initPlayerUI();
+
+		pAcquireLayer->updateGameRender();
+		pPlayerLayer->updatePlayerRender();
+		
+		schedule( schedule_selector( AcquireGameScene::updateGame ), 2.0f	);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void AcquireGameScene::updateGame( float dt){
+	pGame->runTheGameOneRound();
+	pAcquireLayer->updateGameRender();
+	pPlayerLayer->updatePlayerRender();
+}
+
+AcquireGameScene::~AcquireGameScene()
+{
+	if (pAcquireLayer)
+	{
+		pAcquireLayer->release();
+		pAcquireLayer = NULL;
+	}
+
+	if (pAcquireLayer)
+	{
+		pAcquireLayer->release();
+		pAcquireLayer = NULL;
+	}
+
+	delete pGame;
+}

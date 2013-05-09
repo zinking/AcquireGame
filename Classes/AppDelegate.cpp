@@ -10,6 +10,8 @@
 #include "Game/definitions.h"
 #include "Game/PlayerAI.h"
 
+#include "cocos2d.h"
+
 USING_NS_CC;
 using namespace std;
 
@@ -73,49 +75,13 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // create a scene. it's an autorelease object
     
-	initGameScene();
+	CCScene *pScene = AcquireGameScene::create();
+	 pDirector->runWithScene(pScene);
     return true;
 }
 
-void AppDelegate::initGameScene(){
-	CCScene *pScene = AcquireScene::scene();
-	pPlayerLayer = PlayerLayer::create();
-	pPlayerLayer->setPlayerName("zhenw");
-	pScene->addChild(pPlayerLayer,1);
-
-	pAcquireLayer = AcquireScene::create();
-	pScene->addChild(pAcquireLayer,0);
-
-	initGameLogic();
-
-	pAcquireLayer->initGameUI();
-	pPlayerLayer->initPlayerUI();
-    // run
-	CCDirector* pDirector = CCDirector::sharedDirector();
-    pDirector->runWithScene(pScene);
-
-	//CCScheduler::sharedScheduler()->scheduleSelector(schedule_selector(CDataInitNetModule::updateTimer), this, 1.0f/15.0f, false);
-}
-
-void AppDelegate::initGameLogic(){
-	pGame = new Game;
-	//DefaultAI* pai1 = new DefaultAI("N1");
-	pAcquireLayer->setGameStatus( &pGame->gs );
-
-	DefaultAI* pai2 = new DefaultAI("N2");
-
-	Player* pa = new Player(pPlayerLayer);
-	pPlayerLayer->setPlayer( pa );
-	//pai1->setPlayer( pa );
-	Player* pb = new Player(pai2);
-	pai2->setPlayer( pb );
 
 
-	pGame->addPlayer( pa );
-	pGame->addPlayer( pb );
-
-	pGame->initPlayerWithATiles();
-}
 
 // This function will be called when the app is inactive. When comes a phone call,it's be invoked too
 void AppDelegate::applicationDidEnterBackground() {
