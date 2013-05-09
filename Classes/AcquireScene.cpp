@@ -169,6 +169,7 @@ void AcquireScene::menuClickCallBack(CCObject* pSender)
 	if( !pGame->isEndOfGame() ){
 		pGame->runTheGameOneRound();
 		updateGameRender();
+		showStatusPopup();
 	}
 }
 
@@ -179,5 +180,12 @@ void AcquireScene::menuCloseCallback(CCObject* pSender)
 	#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 	exit(0);
 	#endif
+}
+
+void AcquireScene::showStatusPopup()
+{
+	Popup *popup = Popup::node();
+	this->addChild(popup);
+	this->setTouchEnabled(false);
 }
 

@@ -5,6 +5,7 @@
 #include "Game\definitions.h"
 #include <vector>
 #include "AppMacros.h"
+#include "Popup.h"
 struct Game;
 struct Player;
 class ATileSprite;
@@ -21,6 +22,8 @@ public:
     virtual bool init();  
 	void initGameLogic();
 	void initGameUI();
+	
+	void showStatusPopup();
 
 	void updateGameRender();
     static cocos2d::CCScene* scene();
