@@ -35,6 +35,7 @@ struct PlayerAI{
 
 struct DefaultAI:PlayerAI{
 	DefaultAI( string iid ){ id = iid; }
+	DefaultAI(  ){  }
 	//const string getID()const;
 	//AI cannot change PLAYER status
 	const ConvertStockOrder decideDoStockConversion(const GameStatus& bs );

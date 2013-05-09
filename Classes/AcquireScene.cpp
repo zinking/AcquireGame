@@ -18,11 +18,15 @@ ccColor4B COMPANYCOLOR4[NUMBER_OF_STOCKS]={
 	ccc4(255,128,255,100)
 };
 
+void AcquireScene::setGameStatus( GameStatus* gs ){
+	pGame = gs;
+}
 CCScene* AcquireScene::scene()
 {
     CCScene *scene = CCScene::create();
-    AcquireScene *layer = AcquireScene::create();
-    scene->addChild(layer);
+    //AcquireScene *layer = AcquireScene::create();
+
+    //scene->addChild(layer);
     return scene;
 }
 
@@ -41,9 +45,105 @@ void AcquireScene::initGameUI()
 			this->addChild(at);
 		}
 	}
+
+	updateGameRender();
+}
+
+void AcquireScene::initGameLogic(){
+	/*
+	pGame = new Game;
+	DefaultAI* pai1 = new DefaultAI("N1");
+	DefaultAI* pai2 = new DefaultAI("N2");
+
+	Player* pa = new Player(pai1);
+	pai1->setPlayer( pa );
+	Player* pb = new Player(pai2);
+	pai2->setPlayer( pb );
+
+	pCur = pa;
+
+	pGame->addPlayer( pa );
+	pGame->addPlayer( pb );
+
+	pGame->initPlayerWithATiles();
+	*/
+}
+
+extern char COMPANYNAME[NUMBER_OF_STOCKS][20];
+
+void AcquireScene::updateGameRender(){
+	const vector<Block> currentblocks = pGame->getAllBlocks();
+	for( auto it=currentblocks.begin(); it!=currentblocks.end(); ++it ){
+		for( auto it2=it->ATiles.begin(); it2 != it->ATiles.end(); ++it2 ){
+			ATileLabel* pal = ats[ it2->row ][ it2->col ];
+			pal->updateCaption( it->c );
+		}
+	}
+}
+
+bool AcquireScene::init()
+{
+    if ( !CCLayer::init() )
+    {
+        return false;
+    }
+    
+	//initGameLogic();
+	
+    CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
+    CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
+
+    CCMenuItemImage *pci = CCMenuItemImage::create(
+        "CloseNormal.png",
+        "CloseSelected.png",
+        this,
+        menu_selector(AcquireScene::menuClickCallBack)
+	);
+    
+	pci->setPosition(ccp(op.x + sz.width - pci->getContentSize().width/2 ,op.y + pci->getContentSize().height/2));
+    CCMenu* pMenu = CCMenu::create(pci, NULL);
+    pMenu->setPosition(CCPointZero);
+    this->addChild(pMenu, 1);
+
+	this->setTouchEnabled(true);
+	//CCDirector::sharedDirector()->getTouchDispatcher()->addStandardDelegate(this,0);
+
+	//initGameUI();
+    
+    return true;
+}
+
+void AcquireScene::menuClickCallBack(CCObject* pSender)
+{
+	/*
+	if( !pGame->isEndOfGame() ){
+		pGame->runTheGameOneRound();
+		updateGameRender();
+	}
+	*/
+}
+
+void AcquireScene::menuCloseCallback(CCObject* pSender)
+{
+    CCDirector::sharedDirector()->end();
+
+	#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+	exit(0);
+	#endif
+}
+
+//////////////////////////////////////////////////////////////////////
+
+void PlayerLayer::initPlayerUI()
+{
+	CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
+    CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
+	int dx = op.x + BLOCK_SIZE;
+	int dy = op.y + sz.height - BLOCK_SIZE * HEIGH - BLOCK_SIZE/4 ;
+
 	CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->addImage("r.png");
 
-	CCLabelTTF* pl = CCLabelTTF::create( pCur->getID(), "Arial", FONT_SIZE, 
+	CCLabelTTF* pl = CCLabelTTF::create( pplayer->getID(), "Arial", FONT_SIZE, 
 		CCSize( BLOCK_SIZE,BLOCK_SIZE*2), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
 	CCSprite* avtar  = CCSprite::createWithTexture(pTexture,CCRectMake(0,0,BLOCK_SIZE,BLOCK_SIZE));
 	avtar->setPosition(ccp(0,BLOCK_SIZE/3));
@@ -83,101 +183,41 @@ void AcquireScene::initGameUI()
 		this->addChild( pl, 0, 9+i );
 	}
 
-	updateGameRender();
+	updatePlayerRender();
 }
 
-void AcquireScene::initGameLogic(){
-	pGame = new Game;
-	DefaultAI* pai1 = new DefaultAI("N1");
-	DefaultAI* pai2 = new DefaultAI("N2");
 
-	Player* pa = new Player(pai1);
-	pai1->setPlayer( pa );
-	Player* pb = new Player(pai2);
-	pai2->setPlayer( pb );
-
-	pCur = pa;
-
-	pGame->addPlayer( pa );
-	pGame->addPlayer( pb );
-
-	pGame->initPlayerWithATiles();
-}
-
-extern char COMPANYNAME[NUMBER_OF_STOCKS][20];
-
-void AcquireScene::updateGameRender(){
+void PlayerLayer::updatePlayerRender(){
 	UINT i = 0;
-	for( auto it=pCur->ATiles.begin(); it!=pCur->ATiles.end(); ++it,++i ){
+	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it,++i ){
 		CCLabelTTF* pl = (CCLabelTTF*)this->getChildByTag( 1+i );
 		pl->setString( it->getCaption().c_str() );
 	}
 
 	CCLabelTTF* pl = (CCLabelTTF*)this->getChildByTag( 8 );
 	char info[10];
-	sprintf_s( info, "%d$", pCur->getCash() );
+	sprintf_s( info, "%d$", pplayer->getCash() );
 	pl->setString( info );
 
 	for( i=0; i<5; i++ ){
 		CCLabelTTF* pl = (CCLabelTTF*)this->getChildByTag( 9+i );
-		sprintf_s( info, "%c*%d", COMPANYNAME[i][0], pCur->stocks[i] );
+		sprintf_s( info, "%c*%d", COMPANYNAME[i][0], pplayer->stocks[i] );
 		pl->setString( info );
 	}
 	
-	for( auto it=pGame->allblocks.begin(); it!=pGame->allblocks.end(); ++it ){
-		for( auto it2=it->ATiles.begin(); it2 != it->ATiles.end(); ++it2 ){
-			ATileLabel* pal = ats[ it2->row ][ it2->col ];
-			pal->updateCaption( it->c );
-		}
-	}
 }
 
-bool AcquireScene::init()
-{
-    if ( !CCLayer::init() )
-    {
+bool PlayerLayer::init(){
+    if ( !CCLayer::init() ){
         return false;
     }
-    
-	initGameLogic();
-	
     CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
     CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 
-    CCMenuItemImage *pci = CCMenuItemImage::create(
-        "CloseNormal.png",
-        "CloseSelected.png",
-        this,
-        menu_selector(AcquireScene::menuClickCallBack)
-	);
-    
-	pci->setPosition(ccp(op.x + sz.width - pci->getContentSize().width/2 ,op.y + pci->getContentSize().height/2));
-    CCMenu* pMenu = CCMenu::create(pci, NULL);
-    pMenu->setPosition(CCPointZero);
-    this->addChild(pMenu, 1);
-
 	this->setTouchEnabled(true);
-	//CCDirector::sharedDirector()->getTouchDispatcher()->addStandardDelegate(this,0);
-
-	initGameUI();
-    
     return true;
 }
 
-void AcquireScene::menuClickCallBack(CCObject* pSender)
-{
-	if( !pGame->isEndOfGame() ){
-		pGame->runTheGameOneRound();
-		updateGameRender();
-	}
+void PlayerLayer::setPlayerName( string name ){ 
+	id = name; 
 }
-
-void AcquireScene::menuCloseCallback(CCObject* pSender)
-{
-    CCDirector::sharedDirector()->end();
-
-	#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-	exit(0);
-	#endif
-}
-
