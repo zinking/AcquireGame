@@ -44,11 +44,19 @@ public:
 
 class PlayerLayer : public cocos2d::CCLayer, public DefaultAI
 {
+	GameStatus* pGame;
+	Popup *popup;
+	
 public:
+	bool inoperation;
+	//GAMESTAGE stage;
     virtual bool init();  
 	void updatePlayerRender();
+	void updatePlayerLogic();
 	void initPlayerUI();
 	void setPlayerName( string name );
+
+	void setGameStatus( GameStatus* gs );
    
     CREATE_FUNC(PlayerLayer);
 	//LAYER_NODE_FUNC(TouchableLayer);  
@@ -57,6 +65,10 @@ public:
 	void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
 
 	const PlaceATileOrder decidePlaceATile( const GameStatus& bs );
+
+
+	void askPlayerToPlaceTile();
+	void onPlayerPlacedTile(cocos2d::CCObject *pSender);
 	
 };
 

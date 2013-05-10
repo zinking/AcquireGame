@@ -48,7 +48,7 @@ void Popup::initDialog()
 	CCMenuItemFont::setFontName("Arial");
 	CCMenuItemFont::setFontSize(20);
 
-    CCMenuItemFont *okMenuItem = CCMenuItemFont::create("OK", this, menu_selector(Popup::okMenuItemCallback));
+    okMenuItem = CCMenuItemFont::create("OK", this, menu_selector(Popup::okMenuItemCallback));
     okMenuItem->setPosition(ccp(winSize.width / 2 - 100, winSize.height / 2 - 50));
 	okMenuItem->setColor(txtColor);
     
@@ -59,6 +59,8 @@ void Popup::initDialog()
     menu = CCMenu::create(okMenuItem, cancelMenuItem, NULL);
     menu->setPosition(CCPointZero);
     this->addChild(menu);
+
+	//okMenuItem->set
 }
 
 

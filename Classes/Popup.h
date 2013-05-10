@@ -7,11 +7,13 @@ USING_NS_CC;
 
 class Popup : public CCLayerColor
 {
+public:
 	ccColor4B bgColor;
 	ccColor3B txtColor;
 	std::string text;
 
 	CCMenu *menu;
+	CCMenuItemFont *okMenuItem;
     bool m_bTouchedMenu;
 
 	public:

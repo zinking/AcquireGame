@@ -73,7 +73,7 @@ int main(){
 	g.addPlayer( &a );
 	g.addPlayer( &b );
 
-	g.runTheGame();
+	g.runTheGameForAI();
 
 	system("pause");
 

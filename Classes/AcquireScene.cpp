@@ -35,6 +35,7 @@ void AcquireScene::initGameUI()
 {
 	CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
     CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
+	
 	int dx = op.x + BLOCK_SIZE;
 	int dy = op.y + sz.height - BLOCK_SIZE * HEIGH - BLOCK_SIZE/4 ;
 	for( int i=0; i<HEIGH; i++ ){//row
@@ -46,6 +47,14 @@ void AcquireScene::initGameUI()
 			this->addChild(at);
 		}
 	}
+
+	dx = op.x + BLOCK_SIZE*WIDTH/2;
+	dy = op.y + sz.height  ;
+
+	CCLabelTTF* pl = CCLabelTTF::create( "", "Arial", FONT_SIZE, 
+		CCSize( BLOCK_SIZE*WIDTH,BLOCK_SIZE), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
+	pl->setPosition(  ccp(dx,dy) );
+	this->addChild( pl, 1, 11 );
 
 	updateGameRender();
 }
@@ -61,6 +70,9 @@ void AcquireScene::updateGameRender(){
 			pal->updateCaption( it->c );
 		}
 	}
+
+	CCLabelTTF* pl = (CCLabelTTF*)this->getChildByTag( 11 );
+	pl->setString( pGame->getLastestMessage().c_str() );
 }
 
 bool AcquireScene::init()
@@ -205,6 +217,10 @@ bool PlayerLayer::init(){
     CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 
 	this->setTouchEnabled(true);
+	popup = Popup::node();
+	this->addChild(popup);
+	popup->setVisible(false );
+	inoperation = false;
     return true;
 }
 
@@ -212,13 +228,61 @@ void PlayerLayer::setPlayerName( string name ){
 	id = name; 
 }
 
+void PlayerLayer::updatePlayerLogic(){
+	if( inoperation ) return;
+	GAMESTAGE stage = pGame->getGameState();
+	if( stage == TO_PLACE_TILE ){
+		//stage = TILE_PLACED;
+		askPlayerToPlaceTile();
+		inoperation = true;
+	}
+	else if( stage == TO_BUY_STOCK ){
+		//stage = STOCK_BOUGHT;
+		pGame->setGameStage( STOCK_BOUGHT );
+	}
+	else if( stage == TO_SETUP_COMPANY ){
+		//stage = STOCK_BOUGHT;
+		pGame->setGameStage( COMPANY_SETUP );
+	}
+	else if( stage == TO_SELL_STOCK ){
+		//stage = STOCK_SOLD;
+		pGame->setGameStage( STOCK_SOLD );
+	}
+	else if ( stage == TO_CONVERT_STOCK ){
+		//stage = STOCK_CONVERTED;
+		pGame->setGameStage( STOCK_CONVERTED );
+	}
+}
+
 const PlaceATileOrder PlayerLayer::decidePlaceATile( const GameStatus& bs ){
-	Popup *popup = Popup::node();
-	this->addChild(popup);
+	//Popup *popup = Popup::node();
+	//this->addChild(popup);
+	
+	//this->setTouchEnabled(false);
+	//while( true ) Sleep( 5 );
+	//const ATile& t = *( pplayer->ATiles.begin() );
+	//PlaceATileOrder od( t );
+	//return od;
+	return DefaultAI::decidePlaceATile( bs );
+}
+
+void PlayerLayer::setGameStatus( GameStatus* gs ){
+	pGame = gs;
+}
+
+void PlayerLayer::askPlayerToPlaceTile(){
+	popup->setVisible(true);
 	this->setTouchEnabled(false);
-	const ATile& t = *( pplayer->ATiles.begin() );
-	PlaceATileOrder od( t );
-	return od;
+	popup->okMenuItem->setTarget( this, menu_selector(PlayerLayer::onPlayerPlacedTile));
+}
+
+void PlayerLayer::onPlayerPlacedTile(cocos2d::CCObject *pSender){
+	//stage = TILE_PLACED;
+	pGame->setGameStage( TILE_PLACED );
+	this->setTouchEnabled(true);
+	popup->setVisible(false);
+	inoperation = false;
+	//popup->removeFromParentAndCleanup(true);
 }
 
 
@@ -240,6 +304,7 @@ bool AcquireGameScene::init()
 		pGame = new Game;
 		//DefaultAI* pai1 = new DefaultAI("N1");
 		pAcquireLayer->setGameStatus( &pGame->gs );
+		pPlayerLayer->setGameStatus( &pGame->gs );
 
 		DefaultAI* pai2 = new DefaultAI("N2");
 
@@ -260,7 +325,8 @@ bool AcquireGameScene::init()
 		pAcquireLayer->updateGameRender();
 		pPlayerLayer->updatePlayerRender();
 		
-		schedule( schedule_selector( AcquireGameScene::updateGame ), 2.0f	);
+		schedule( schedule_selector( AcquireGameScene::updateGame ), 1.0f	);
+		//scheduleOnce( schedule_selector( AcquireGameScene::updateGame ), 2.0f	);
 		return true;
 	}
 	else
@@ -270,9 +336,14 @@ bool AcquireGameScene::init()
 }
 
 void AcquireGameScene::updateGame( float dt){
-	pGame->runTheGameOneRound();
-	pAcquireLayer->updateGameRender();
-	pPlayerLayer->updatePlayerRender();
+	if( !pGame->isEndOfGame() && pPlayerLayer->inoperation == false ){
+		pGame->runTheGameOneRound();
+		pAcquireLayer->updateGameRender();
+		pPlayerLayer->updatePlayerRender();
+		if( pGame->isStupidHumanSTurn() ){
+			pPlayerLayer->updatePlayerLogic();
+		}
+	}
 }
 
 AcquireGameScene::~AcquireGameScene()

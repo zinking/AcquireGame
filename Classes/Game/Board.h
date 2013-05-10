@@ -96,7 +96,7 @@ struct Order;
 struct Game;
 /*this class intends to provide trimmed down access to the game class*/
 struct GameStatus{
-	const Game* pbd;
+	Game* pbd;
 	Block AcquiringBlock;
 	Block AcquiredBlock;
 public:
@@ -109,16 +109,26 @@ public:
 	int getStockPrice( const COMPANY& c )const;
 	bool isCompanyAvailable( const COMPANY& c )const;
 
+	const Block getAcquiringBlock()const;
+	const Block getAcquiredBlock()const;
+
+	const GAMESTAGE getGameState() const;
+	void setGameStage( GAMESTAGE gs );
+	const string getLastestMessage() const;
+
 };
+
 
 struct Game{
 	int stocks[NUMBER_OF_STOCKS];
 	vector<ATile> allATiles;
 	vector<Block> allblocks;
 	vector<Player*> players;
+	vector<string> messages;
 	GameStatus gs;
 	StockTable stocktable;
-
+	GAMESTAGE stage;
+	MergeEvent* pme;
 	int round;
 	ATile current_ATile;
 	Game( );
@@ -126,6 +136,7 @@ struct Game{
 	void addPlayer( Player* player );
 	void initPlayerWithATiles();
 	bool isEndOfGame();
+	bool isStupidHumanSTurn() const;
 	const ATile askPlayerToPlaceATile( Player* p );
 	void allocatePlayerOneATile( Player* p );
 	void askPlayerToBuyStock(  Player* p );
@@ -133,10 +144,15 @@ struct Game{
 	void askPlayersToSellStock( const vector<Player*> shareholders );
 	void askPlayersToConvertStock( const vector<Player*> shareholders );
 	void runTheGame();
+	void runTheGameForAI();
 	void runTheGameOneRound();
+	void runTheGameOneRoundForStupidHuman();
+	void runTheGameOneRoundForSmartAI();
 	vector<int> getAvailableNewCompanies();
 	void doAcquireOnce( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via );
 	void doAcquire(MergeEvent& me );
+	void doAcquireForStupidHumanOnce();
+	void updateGameStageForStupidHuman( GAMESTAGE ns ){ stage = ns; }
 	void allocateBonusFor( enum COMPANY c , const vector<Player*> shs );
 	void statistics();
 };

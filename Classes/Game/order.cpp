@@ -19,13 +19,13 @@ string HoldStockOrder::toString(){
 
 BuyStockOrder::BuyStockOrder( COMPANY cc, int amt ):c(cc),count(amt){}
 string BuyStockOrder::toString(){
-	sprintf_s( info, "BUYSTOCK ORDER COMPANY[%s], COUNT[%d]", COMPANYNAME[c], count);
+	sprintf_s( info, "BUY[%s]*[%d]", COMPANYNAME[c], count);
 	return info;
 }
 
 SellStockOrder::SellStockOrder( COMPANY cc, int amt ):c(cc),count(amt){}
 string SellStockOrder::toString(){
-	sprintf_s( info, "SELL ORDER COMPANY[%s], COUNT[%d]", COMPANYNAME[c], count);
+	sprintf_s( info, "SELL[%s]*[%d]", COMPANYNAME[c], count);
 	return info;
 }
 
@@ -33,7 +33,7 @@ string SellStockOrder::toString(){
 
 PlaceATileOrder::PlaceATileOrder( const ATile& tt ):t(tt){}
 string PlaceATileOrder::toString(){
-	sprintf_s( info, "PLACE TIEL ORDER:%s", t.toString().c_str() );
+	sprintf_s( info, "TILE:%s", t.toString().c_str() );
 	return info;
 }
 
@@ -43,14 +43,16 @@ bool PlaceATileOrder::isValid( const GameStatus& gs, const Player& from )const{
 
 bool PlaceATileOrder::execute( Game* g, Player* p )const{
 	if( isValid( g->gs, *p )){
-		sprintf_s( info, "PLAYER[%s] PLACED AN ATile[%s]\n", p->getID(),t.toString().c_str() );
+		sprintf_s( info, "PLAYER[%s] PLACED AN ATile[%s]", p->getID(),t.toString().c_str() );
 		cout << info << endl;
 		p->removeATile( t );
+		g->messages.push_back( info );
 		return true;
 	}
 	else{
-		sprintf_s( info, "PLAYER[%s] PLACED AN INVALID ATile[%s] IGNORED\n", p->getID(),t.toString().c_str() );
+		sprintf_s( info, "PLAYER[%s] PLACED AN INVALID ATile[%s] IGNORED", p->getID(),t.toString().c_str() );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return false;
 	}
 }
@@ -68,13 +70,15 @@ bool SellStockOrder::execute( Game* g, Player* p )const{
 		p->addStock( c, count * -1 );
 		p->debitCash( sharevalue );
 
-		sprintf_s( info, "PLAYER[%s] selled %d shares of [%s]]\n", p->getID(), count, COMPANYNAME[c] );
+		sprintf_s( info, "PLAYER[%s] selled %d shares of [%s]", p->getID(), count, COMPANYNAME[c] );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return true;
 	}
 	else{
-		sprintf_s( info, "PLAYER[%s] placed an invalid sell share order [ %d shares of %s]\n", p->getID(),count, COMPANYNAME[c] );
+		sprintf_s( info, "PLAYER[%s] invalid sell [ %d * %s]", p->getID(),count, COMPANYNAME[c] );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return false;
 	}
 }
@@ -98,13 +102,15 @@ bool ConvertStockOrder::execute( Game* g, Player* p )const{
 		p->addStock( g->gs.AcquiredBlock.c, stocks_to_convert * -1 );
 		p->addStock( g->gs.AcquiringBlock.c, stocks_converted );
 
-		sprintf_s( info, "PLAYER[%s] converted %d shares of [%s]]\n", p->getID(), count, COMPANYNAME[c] );
+		sprintf_s( info, "PLAYER[%s] converted %d shares of [%s]", p->getID(), count, COMPANYNAME[c] );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return true;
 	}
 	else{
-		sprintf_s( info, "PLAYER[%s] placed an invalid convert share order [ %d shares of %s]\n", p->getID(),count, COMPANYNAME[c] );
+		sprintf_s( info, "PLAYER[%s] invalid convert [ %d * %s]", p->getID(),count, COMPANYNAME[c] );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return false;
 	}
 }
@@ -123,13 +129,15 @@ bool BuyStockOrder::execute( Game* g, Player* p )const{
 		p->debitCash( cost * -1 );
 		p->addStock( c, count );
 
-		sprintf_s( info, "PLAYER[%s] buys %d shares of [%s]]\n", p->getID(), count, COMPANYNAME[c] );
+		sprintf_s( info, "PLAYER[%s] buys %d shares of [%s]]", p->getID(), count, COMPANYNAME[c] );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return true;
 	}
 	else{
-		sprintf_s( info, "PLAYER[%s] placed an invalid buy share order [ %d shares of %s]\n", p->getID(),count, COMPANYNAME[c] );
+		sprintf_s( info, "PLAYER[%s] invalid buy [ %d * %s]", p->getID(),count, COMPANYNAME[c] );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return false;
 	}
 }
@@ -144,13 +152,15 @@ bool SetupCompanyOrder::execute( Game* g, Player* p )const{
 	if( isValid( g->gs, *p )){
 		p->addStock( c, 1 );
 		g->stocktable.markCompanyAvailable(c,0);
-		sprintf_s( info, "PLAYER[%s] setup COMPANY[%s] and rewarded a share\n", p->getID(),  COMPANYNAME[c] );
+		sprintf_s( info, "PLAYER[%s] setup COMPANY[%s] and get a share", p->getID(),  COMPANYNAME[c] );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return true;
 	}
 	else{
-		sprintf_s( info, "PLAYER[%s] placed an invalid setup COMPANY order \n", p->getID() );
+		sprintf_s( info, "PLAYER[%s] placed an invalid setup COMPANY order", p->getID() );
 		cout << info << endl;
+		g->messages.push_back( info );
 		return false;
 	}
 }
