@@ -7,6 +7,7 @@ USING_NS_CC;
 #include "Game/PlayerAI.h"
 #include "Game/order.h"
 #include "ATileSprite.h"
+#include <algorithm>
 
 ccColor3B COMPANYCOLOR[NUMBER_OF_STOCKS]={ 
 	ccc3(255,0,0),   ccc3(0,255,0),   ccc3(0,0,255),
@@ -25,9 +26,6 @@ void AcquireScene::setGameStatus( GameStatus* gs ){
 CCScene* AcquireScene::scene()
 {
     CCScene *scene = CCScene::create();
-    //AcquireScene *layer = AcquireScene::create();
-
-    //scene->addChild(layer);
     return scene;
 }
 
@@ -48,12 +46,13 @@ void AcquireScene::initGameUI()
 		}
 	}
 
-	dx = op.x + BLOCK_SIZE*WIDTH/2;
-	dy = op.y + sz.height  ;
+	dx = op.x + BLOCK_SIZE;
+	dy = op.y + sz.height -BLOCK_SIZE/2  ;
 
-	CCLabelTTF* pl = CCLabelTTF::create( "", "Arial", FONT_SIZE, 
-		CCSize( BLOCK_SIZE*WIDTH,BLOCK_SIZE), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
+	CCLabelTTF* pl = CCLabelTTF::create( "", "Arial", FONT_SIZE*1.2, 
+		CCSize( BLOCK_SIZE*WIDTH,BLOCK_SIZE), kCCTextAlignmentLeft,kCCVerticalTextAlignmentBottom); 
 	pl->setPosition(  ccp(dx,dy) );
+	pl->setAnchorPoint(ccp(0,0));
 	this->addChild( pl, 1, 11 );
 
 	updateGameRender();
@@ -82,8 +81,6 @@ bool AcquireScene::init()
         return false;
     }
     
-	//initGameLogic();
-	
     CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
     CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 
@@ -100,9 +97,6 @@ bool AcquireScene::init()
     this->addChild(pMenu, 1);
 
 	this->setTouchEnabled(true);
-	//CCDirector::sharedDirector()->getTouchDispatcher()->addStandardDelegate(this,0);
-
-	//initGameUI();
     
     return true;
 }
@@ -110,12 +104,7 @@ bool AcquireScene::init()
 void AcquireScene::menuClickCallBack(CCObject* pSender)
 {
 	showStatusPopup();
-	/*
-	if( !pGame->isEndOfGame() ){
-		pGame->runTheGameOneRound();
-		updateGameRender();
-	}
-	*/
+
 }
 
 void AcquireScene::menuCloseCallback(CCObject* pSender)
@@ -135,6 +124,15 @@ void AcquireScene::showStatusPopup()
 }
 
 //////////////////////////////////////////////////////////////////////
+CCLabelTTF* PlayerLayer::createImageLabel( CCPoint& ipos, CCRect& rect,  int fontsize , string text){
+	CCLabelTTF* pl = CCLabelTTF::create( text.c_str(), "Arial", fontsize, 
+		CCSize( BLOCK_SIZE,BLOCK_SIZE*2), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
+	CCSprite* avtar  = CCSprite::createWithTexture(pTexture,rect);
+	avtar->setPosition(ipos);
+	avtar->setAnchorPoint(ccp(0,0));
+	pl->addChild(avtar);
+	return pl;
+}
 
 void PlayerLayer::initPlayerUI()
 {
@@ -142,55 +140,48 @@ void PlayerLayer::initPlayerUI()
     CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 	int dx = op.x + BLOCK_SIZE;
 	int dy = op.y + sz.height - BLOCK_SIZE * HEIGH - BLOCK_SIZE/4 ;
-
-	CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->addImage("r.png");
-
-	CCLabelTTF* pl = CCLabelTTF::create( pplayer->getID(), "Arial", FONT_SIZE, 
-		CCSize( BLOCK_SIZE,BLOCK_SIZE*2), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
-	CCSprite* avtar  = CCSprite::createWithTexture(pTexture,CCRectMake(0,0,BLOCK_SIZE,BLOCK_SIZE));
-	avtar->setPosition(ccp(0,BLOCK_SIZE/3));
-	avtar->setAnchorPoint(ccp(0,0));
-	pl->addChild(avtar);
+	pTexture = CCTextureCache::sharedTextureCache()->addImage("r.png");
+	CCLabelTTF* pl = createImageLabel(ccp(0,BLOCK_SIZE/3),CCRectMake(0,0,BLOCK_SIZE,BLOCK_SIZE),FONT_SIZE,"zhenw");
 	pl->setPosition(  ccp(BLOCK_SIZE/2,BLOCK_SIZE) );
 	this->addChild( pl, 0, 0 );
-
 	for( UINT i=0; i<NUMBER_OF_ATileS_EACH; i++ ){
-		pl = CCLabelTTF::create( "A1", "Arial", FONT_SIZE, 
-			CCSize( BLOCK_SIZE,BLOCK_SIZE), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
-		avtar  = CCSprite::createWithTexture(pTexture,CCRectMake(BLOCK_SIZE,0,BLOCK_SIZE,BLOCK_SIZE));
-		avtar->setPosition(ccp(0,-FONT_SIZE/2));
-		avtar->setAnchorPoint(ccp(0,0));
-		pl->addChild(avtar);
-		pl->setPosition(  ccp(BLOCK_SIZE*(2+i),BLOCK_SIZE/1.5) );
+		pl = createImageLabel(ccp(0,-FONT_SIZE/2),CCRectMake(BLOCK_SIZE,0,BLOCK_SIZE,BLOCK_SIZE),FONT_SIZE*1.2);
+		pl->setPosition(  ccp(BLOCK_SIZE*(2+i),BLOCK_SIZE*1.25) );
 		this->addChild( pl, 0, 1+i );
 	}
 
-	pl = CCLabelTTF::create( "1500$", "Arial", FONT_SIZE*1.2, 
-			CCSize( BLOCK_SIZE*2,BLOCK_SIZE), kCCTextAlignmentRight,kCCVerticalTextAlignmentCenter); 
-	avtar  = CCSprite::createWithTexture(pTexture,CCRectMake(BLOCK_SIZE*2,0,BLOCK_SIZE,BLOCK_SIZE));
-	avtar->setPosition(ccp(0,0));
-	avtar->setAnchorPoint(ccp(0,0));
-	pl->addChild(avtar);
-	pl->setPosition(  ccp(BLOCK_SIZE*9,BLOCK_SIZE/2) );
+	pl = createImageLabel(ccp(-BLOCK_SIZE,-BLOCK_SIZE/4),CCRectMake(BLOCK_SIZE*2,0,BLOCK_SIZE,BLOCK_SIZE),FONT_SIZE*1.2);
+	pl->setPosition(  ccp(BLOCK_SIZE*9.5,BLOCK_SIZE*1.25) );
 	this->addChild( pl, 0, 8 );
 
 	for( UINT i=0; i<5; i++ ){
-		pl = CCLabelTTF::create( "W:()", "Arial", FONT_SIZE*1.2, 
-				CCSize( BLOCK_SIZE*2,BLOCK_SIZE), kCCTextAlignmentCenter,kCCVerticalTextAlignmentCenter); 
-		avtar  = CCSprite::createWithTexture(pTexture,CCRectMake(0,BLOCK_SIZE*(1+i),BLOCK_SIZE*2,BLOCK_SIZE));
-		avtar->setPosition(ccp(0,0));
-		avtar->setAnchorPoint(ccp(0,0));
-		pl->addChild(avtar);
-		pl->setPosition(  ccp(BLOCK_SIZE*11.25f,dy+i*BLOCK_SIZE) );
+		pl = createImageLabel(ccp(-BLOCK_SIZE,-BLOCK_SIZE/4),CCRectMake(0,BLOCK_SIZE*(1+i),BLOCK_SIZE*2,BLOCK_SIZE),FONT_SIZE*1.5);
+		pl->setPosition(  ccp(BLOCK_SIZE*11.5f,dy+(1+i)*BLOCK_SIZE) );
 		this->addChild( pl, 0, 9+i );
 	}
 
+	dx = op.x + BLOCK_SIZE;
+	dy = op.y + sz.height-BLOCK_SIZE*2  ;
+
+	pl = CCLabelTTF::create( "", "Arial", FONT_SIZE*1.5, 
+		CCSize( BLOCK_SIZE*WIDTH,BLOCK_SIZE), kCCTextAlignmentLeft,kCCVerticalTextAlignmentBottom); 
+	pl->setPosition(  ccp(dx,dy) );
+	pl->setAnchorPoint(ccp(0,0));
+	
+	pl->setVisible( false );
+	this->addChild( pl, 1, 111 );
+	pHintLabel = pl;
 	updatePlayerRender();
 }
 
 
 void PlayerLayer::updatePlayerRender(){
 	UINT i = 0;
+	/*std::vector<ATile> handtiles;
+	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it ){
+		handtiles.push_back( *it );
+	}
+	sort( handtiles.begin(), handtiles.end() );*/
 	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it,++i ){
 		CCLabelTTF* pl = (CCLabelTTF*)this->getChildByTag( 1+i );
 		pl->setString( it->getCaption().c_str() );
@@ -210,16 +201,13 @@ void PlayerLayer::updatePlayerRender(){
 }
 
 bool PlayerLayer::init(){
-    if ( !CCLayer::init() ){
+    if ( !CCLayerColor::init() ){
         return false;
     }
     CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
     CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 
 	this->setTouchEnabled(true);
-	popup = Popup::node();
-	this->addChild(popup);
-	popup->setVisible(false );
 	inoperation = false;
     return true;
 }
@@ -250,14 +238,14 @@ void PlayerLayer::updatePlayerLogic(){
 }
 
 const PlaceATileOrder PlayerLayer::decidePlaceATile( const GameStatus& bs ){
-	//Popup *popup = Popup::node();
-	//this->addChild(popup);
-	
-	//this->setTouchEnabled(false);
-	//while( true ) Sleep( 5 );
 	//const ATile& t = *( pplayer->ATiles.begin() );
-	//PlaceATileOrder od( t );
-	//return od;
+	UINT i = 0;
+	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it,++i ){
+		if( i==selected_tile_index){
+			PlaceATileOrder od( *it );
+			return od;
+		}
+	}
 	return DefaultAI::decidePlaceATile( bs );
 }
 
@@ -265,16 +253,53 @@ void PlayerLayer::setGameStatus( GameStatus* gs ){
 	pGame = gs;
 }
 
+void PlayerLayer::toggleDimmedBackGround( bool toggled ){
+	this->setColor( toggled ? ccBLUE:ccBLACK );
+	this->setOpacity( toggled ? 175: 0 );
+}
+
 void PlayerLayer::askPlayerToPlaceTile(){
-	popup->setVisible(true);
-	this->setTouchEnabled(false);
-	popup->okMenuItem->setTarget( this, menu_selector(PlayerLayer::onPlayerPlacedTile));
+	CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
+    CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
+	toggleDimmedBackGround(true);
+	pHintLabel->setVisible(true);
+	pHintLabel->setString("Please select a Tile");
+	pMenu = CCMenu::create();
+
+	UINT i = 0;
+	CCLabelTTF* pl;
+	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it,++i ){
+		pl = createImageLabel(ccp(0,-FONT_SIZE/2),CCRectMake(BLOCK_SIZE,0,BLOCK_SIZE,BLOCK_SIZE),FONT_SIZE*1.2, it->getCaption());
+		CCMenuItemLabel* mi = CCMenuItemLabel::create(pl);
+		mi->initWithTarget(this, menu_selector(PlayerLayer::onPlayerSelectedAnATile) );
+		mi->setPosition( i*BLOCK_SIZE*1.5, BLOCK_SIZE );
+		mi->setScale(1.5);
+		pMenu->addChild(mi,0,i);
+	}
+	
+	pl = createImageLabel(ccp(0,BLOCK_SIZE/3),CCRectMake(0,0,BLOCK_SIZE,BLOCK_SIZE),FONT_SIZE,"OKAY");
+	CCMenuItemLabel* mi = CCMenuItemLabel::create( pl, this, menu_selector(PlayerLayer::onPlayerPlacedTile) );
+	mi->setPosition( BLOCK_SIZE*7, -2*BLOCK_SIZE );
+	pMenu->addChild(mi,0,11);
+	pMenu->setPosition( ccp(BLOCK_SIZE*2,BLOCK_SIZE*4) );
+	this->addChild( pMenu );
+}
+
+void PlayerLayer::onPlayerSelectedAnATile(cocos2d::CCObject *pSender){
+	CCMenuItemLabel* mi = ( CCMenuItemLabel* ) pSender ;
+	char info[50];
+	selected_tile_index = mi->getTag();
+	sprintf_s( info, "No.%d ATILE selected", selected_tile_index );
+	pHintLabel->setString(info);
+
 }
 
 void PlayerLayer::onPlayerPlacedTile(cocos2d::CCObject *pSender){
 	pGame->updateGameStage();
 	this->setTouchEnabled(true);
-	popup->setVisible(false);
+	pMenu->removeFromParentAndCleanup( true );
+	pHintLabel->setVisible(false);
+	toggleDimmedBackGround(false);
 	inoperation = false;
 }
 

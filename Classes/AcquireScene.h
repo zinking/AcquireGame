@@ -42,10 +42,16 @@ public:
 	
 };
 
-class PlayerLayer : public cocos2d::CCLayer, public DefaultAI
+class PlayerLayer : public cocos2d::CCLayerColor, public DefaultAI
 {
 	GameStatus* pGame;
 	Popup *popup;
+	CCTexture2D * pTexture;
+
+	CCLabelTTF* pHintLabel;
+
+	int selected_tile_index;
+	CCMenu* pMenu;
 	
 public:
 	bool inoperation;
@@ -57,6 +63,8 @@ public:
 	void setPlayerName( string name );
 
 	void setGameStatus( GameStatus* gs );
+
+	CCLabelTTF* createImageLabel( CCPoint& ipos, CCRect& rect, int fontsize, string text="" );
    
     CREATE_FUNC(PlayerLayer);
 	//LAYER_NODE_FUNC(TouchableLayer);  
@@ -68,7 +76,9 @@ public:
 
 
 	void askPlayerToPlaceTile();
-	void onPlayerPlacedTile(cocos2d::CCObject *pSender);
+	void onPlayerSelectedAnATile(CCObject *pSender);
+	void onPlayerPlacedTile(CCObject *pSender);
+	void toggleDimmedBackGround( bool toggled );
 	
 };
 

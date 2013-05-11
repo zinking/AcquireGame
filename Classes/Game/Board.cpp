@@ -180,6 +180,7 @@ int GameStatus::getStockPrice( const COMPANY& c )const{
 }
 bool GameStatus::isCompanyAvailable( const COMPANY& c )const{
 	if(c>=0 && c<=NUMBER_OF_STOCKS )return pbd->stocktable.available[c] != 0;
+	return false;
 }
 const Block* GameStatus::getAcquiringBlock()const{
 	return pbd->pme->sorted_blocks[0];

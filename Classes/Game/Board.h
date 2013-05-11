@@ -99,8 +99,6 @@ struct Game;
 /*this class intends to provide trimmed down access to the game class*/
 struct GameStatus{
 	Game* pbd;
-	//Block AcquiringBlock;
-	//Block AcquiredBlock;
 public:
 	GameStatus( );
 	/*this method intends to tell player what blocks are available now*/
