@@ -16,6 +16,7 @@ struct SetupCompanyOrder;
 struct PlayerAI{
 	const Player* pplayer;
 	string id;
+	bool ready;
 	virtual const string getID(){ return id;}
 	//AI cannot change PLAYER status
 	virtual void setPlayer( const Player* p ){ pplayer = p; }
@@ -24,6 +25,12 @@ struct PlayerAI{
 	virtual const BuyStockOrder decideBuyStocks( const GameStatus& bs)=0;
 	virtual const SellStockOrder decideSellStock( const GameStatus& bs)=0;
 	virtual const SetupCompanyOrder decideSetupCompany( const GameStatus& bs )=0;
+
+	virtual void askPlayerToPlaceTile(){ ready= true; }
+	virtual void askPlayerToBuyStock(){ ready= true; }
+	virtual void askPlayerToSetupCompany(){ ready= true; }
+	virtual void askPlayerToSellStock(){ ready= true; }
+	virtual void askPlayerToConvertStock(){ ready= true; }
 	
 	virtual void fyiPlayerInfos( const vector<string> ids)=0 ;
 	virtual void fyiPlayerBuyStockOrder( const string& player, const BuyStockOrder& ods )=0;
@@ -34,8 +41,8 @@ struct PlayerAI{
 };
 
 struct DefaultAI:PlayerAI{
-	DefaultAI( string iid ){ id = iid; }
-	DefaultAI(  ){  }
+	DefaultAI( string iid ){ id = iid; ready = true; }
+	DefaultAI(  ){ ready = true; }
 	//const string getID()const;
 	//AI cannot change PLAYER status
 	const ConvertStockOrder decideDoStockConversion(const GameStatus& bs );

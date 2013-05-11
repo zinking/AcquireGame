@@ -5,6 +5,7 @@
 #include "AppMacros.h"
 #include "Game\definitions.h"
 #include "Game\PlayerAI.h"
+#include "Game\order.h"
 #include "Popup.h"
 #include <vector>
 #include <string>
@@ -45,22 +46,23 @@ public:
 class PlayerLayer : public cocos2d::CCLayerColor, public DefaultAI
 {
 	GameStatus* pGame;
-	Popup *popup;
 	CCTexture2D * pTexture;
-
 	CCLabelTTF* pHintLabel;
+	CCMenu* pMenu;
+	CCMenuItemLabel* pMenuOK;
 
 	int selected_tile_index;
-	CCMenu* pMenu;
+	COMPANY selected_company;
+	int amount;
 	
 public:
-	bool inoperation;
-	//GAMESTAGE stage;
     virtual bool init();  
 	void updatePlayerRender();
-	void updatePlayerLogic();
 	void initPlayerUI();
 	void setPlayerName( string name );
+	void toggleDimmedBackGround( bool toggled );
+	void createMenuContent();
+	void clearMenuContent();
 
 	void setGameStatus( GameStatus* gs );
 
@@ -72,14 +74,74 @@ public:
 	void ccTouchMoved(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
 	void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
 
+	const ConvertStockOrder decideDoStockConversion(const GameStatus& bs );
 	const PlaceATileOrder decidePlaceATile( const GameStatus& bs );
-
+	const BuyStockOrder decideBuyStocks( const GameStatus& bs);
+	const SellStockOrder decideSellStock( const GameStatus& bs);
+	const SetupCompanyOrder decideSetupCompany( const GameStatus& bs );
 
 	void askPlayerToPlaceTile();
-	void onPlayerSelectedAnATile(CCObject *pSender);
-	void onPlayerPlacedTile(CCObject *pSender);
-	void toggleDimmedBackGround( bool toggled );
-	
+	void onPlayerPlaceATile(CCObject *pSender);
+	void onPlayerTilePlaced(CCObject *pSender);
+
+	void askPlayerToBuyStock();
+	void onPlayerBuyStock(CCObject *pSender);
+	void onPlayerStockBought(CCObject *pSender);
+
+	void askPlayerToSetupCompany();
+	void onPlayerSetupCompany(CCObject *pSender);
+	void onPlayerCompanySetup(CCObject *pSender);
+
+	void askPlayerToSellStock();
+	void onPlayerSellStock(CCObject *pSender);
+	void onPlayerStockSold(CCObject *pSender);
+
+	void askPlayerToConvertStock();
+	void onPlayerConvertStock(CCObject *pSender);
+	void onPlayerStockConverted(CCObject *pSender);
+
+};
+
+class AutomaticPlayerLayer : public PlayerLayer
+{
+public:
+	CREATE_FUNC(AutomaticPlayerLayer);
+	const ConvertStockOrder decideDoStockConversion(const GameStatus& bs ){ 
+		return DefaultAI::decideDoStockConversion(bs);
+	}
+	const PlaceATileOrder decidePlaceATile( const GameStatus& bs ){
+		return DefaultAI::decidePlaceATile(bs);
+	}
+	const BuyStockOrder decideBuyStocks( const GameStatus& bs){
+		return DefaultAI::decideBuyStocks(bs);
+	}
+	const SellStockOrder decideSellStock( const GameStatus& bs){
+		return DefaultAI::decideSellStock(bs);
+	}
+	const SetupCompanyOrder decideSetupCompany( const GameStatus& bs ){
+		return DefaultAI::decideSetupCompany(bs);
+	}
+
+	void askPlayerToPlaceTile(){
+		return DefaultAI::askPlayerToPlaceTile();
+	}
+
+	void askPlayerToBuyStock(){
+		return DefaultAI::askPlayerToBuyStock();
+	}
+
+	void askPlayerToSetupCompany(){
+		return DefaultAI::askPlayerToSetupCompany();
+	}
+
+	void askPlayerToSellStock(){
+		return DefaultAI::askPlayerToSellStock();
+	}
+
+	void askPlayerToConvertStock(){
+		return DefaultAI::askPlayerToConvertStock();
+	}
+
 };
 
 class AcquireGameScene : public cocos2d::CCScene

@@ -2,35 +2,44 @@
 using namespace std;
 
 #include "Board.h"
-#include "Player.h"
 #include "order.h"
 #include "definitions.h"
 extern char COMPANYNAME[NUMBER_OF_STOCKS][20];
 extern char info[200];
 
-
-/*
-HoldStockOrder::HoldStockOrder( COMPANY cc ):c(cc){}
-string HoldStockOrder::toString(){
-	sprintf_s( info, "HOLD ORDER %s", COMPANYNAME[c]);
-	return info;
-}
-*/
-
+////////////////////////////////////////////////////////////////////////////////
 BuyStockOrder::BuyStockOrder( COMPANY cc, int amt ):c(cc),count(amt){}
 string BuyStockOrder::toString(){
 	sprintf_s( info, "BUY[%s]*[%d]", COMPANYNAME[c], count);
 	return info;
 }
+bool BuyStockOrder::isValid( const GameStatus& gs, const Player& from )const{
+	if( c>=0 && c<=NUMBER_OF_STOCKS && !gs.isCompanyAvailable( c ) ){
+		int cost = gs.getStockPrice( c ) * count ;
+		return from.getCash() > cost;
+	}
+	return false;
+}
+bool BuyStockOrder::execute( Game* g, Player* p )const{
+	if( isValid( g->gs, *p )){
+		int cost = g->gs.getStockPrice( c ) * count ;
+		p->debitCash( cost * -1 );
+		p->addStock( c, count );
 
-SellStockOrder::SellStockOrder( COMPANY cc, int amt ):c(cc),count(amt){}
-string SellStockOrder::toString(){
-	sprintf_s( info, "SELL[%s]*[%d]", COMPANYNAME[c], count);
-	return info;
+		sprintf_s( info, "PLAYER[%s] buys %d shares of [%s]]", p->getID(), count, COMPANYNAME[c] );
+		cout << info << endl;
+		g->messages.push_back( info );
+		return true;
+	}
+	else{
+		sprintf_s( info, "PLAYER[%s] invalid buy [ %d * %s]", p->getID(),count, COMPANYNAME[c] );
+		cout << info << endl;
+		g->messages.push_back( info );
+		return false;
+	}
 }
 
-
-
+////////////////////////////////////////////////////////////////////////////////
 PlaceATileOrder::PlaceATileOrder( const ATile& tt ):t(tt){}
 string PlaceATileOrder::toString(){
 	sprintf_s( info, "TILE:%s", t.toString().c_str() );
@@ -55,6 +64,12 @@ bool PlaceATileOrder::execute( Game* g, Player* p )const{
 		g->messages.push_back( info );
 		return false;
 	}
+}
+////////////////////////////////////////////////////////////////////////////////
+SellStockOrder::SellStockOrder( COMPANY cc, int amt ):c(cc),count(amt){}
+string SellStockOrder::toString(){
+	sprintf_s( info, "SELL[%s]*[%d]", COMPANYNAME[c], count);
+	return info;
 }
 
 bool SellStockOrder::isValid( const GameStatus& gs, const Player& from )const{
@@ -82,7 +97,17 @@ bool SellStockOrder::execute( Game* g, Player* p )const{
 		return false;
 	}
 }
+////////////////////////////////////////////////////////////////////////////////
 
+
+bool LiquidateStockOrder::isValid( const GameStatus& gs, const Player& from )const{
+	if( c == gs.getAcquiredBlock()->c )
+		return count > 0 && from.getStockAmt( c ) > count;
+	else
+		return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 ConvertStockOrder::ConvertStockOrder(  COMPANY cc, int amt ):c(cc),count(amt){}
 string ConvertStockOrder::toString(){
 	sprintf_s( info, "CONVERT STOCK ORDER %d shares of [%s] ", count ,COMPANYNAME[c]);
@@ -114,33 +139,9 @@ bool ConvertStockOrder::execute( Game* g, Player* p )const{
 		return false;
 	}
 }
+////////////////////////////////////////////////////////////////////////////////
 
-bool BuyStockOrder::isValid( const GameStatus& gs, const Player& from )const{
-	if( c>=0 && c<=NUMBER_OF_STOCKS && !gs.isCompanyAvailable( c ) ){
-		int cost = gs.getStockPrice( c ) * count ;
-		return from.getCash() > cost;
-	}
-	return false;
-}
-
-bool BuyStockOrder::execute( Game* g, Player* p )const{
-	if( isValid( g->gs, *p )){
-		int cost = g->gs.getStockPrice( c ) * count ;
-		p->debitCash( cost * -1 );
-		p->addStock( c, count );
-
-		sprintf_s( info, "PLAYER[%s] buys %d shares of [%s]]", p->getID(), count, COMPANYNAME[c] );
-		cout << info << endl;
-		g->messages.push_back( info );
-		return true;
-	}
-	else{
-		sprintf_s( info, "PLAYER[%s] invalid buy [ %d * %s]", p->getID(),count, COMPANYNAME[c] );
-		cout << info << endl;
-		g->messages.push_back( info );
-		return false;
-	}
-}
+////////////////////////////////////////////////////////////////////////////////
 SetupCompanyOrder::SetupCompanyOrder( COMPANY cc ):c(cc){}
 bool SetupCompanyOrder::isValid( const GameStatus& gs, const Player& from )const{
 	if( c>=0 && c<=NUMBER_OF_STOCKS )

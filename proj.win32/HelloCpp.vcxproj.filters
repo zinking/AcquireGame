@@ -32,9 +32,6 @@
     <ClCompile Include="..\Classes\Game\order.cpp">
       <Filter>Classes\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\Game\Player.cpp">
-      <Filter>Classes\Game</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\Game\PlayerAI.cpp">
       <Filter>Classes\Game</Filter>
     </ClCompile>
@@ -43,6 +40,9 @@
     </ClCompile>
     <ClCompile Include="..\Classes\Popup.cpp">
       <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\Game\GameStage.cpp">
+      <Filter>Classes\Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -67,9 +67,6 @@
     <ClInclude Include="..\Classes\Game\order.h">
       <Filter>Classes\Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\Classes\Game\Player.h">
-      <Filter>Classes\Game</Filter>
-    </ClInclude>
     <ClInclude Include="..\Classes\Game\PlayerAI.h">
       <Filter>Classes\Game</Filter>
     </ClInclude>
@@ -81,6 +78,9 @@
     </ClInclude>
     <ClInclude Include="..\Classes\Popup.h">
       <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\Game\GameStage.h">
+      <Filter>Classes\Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

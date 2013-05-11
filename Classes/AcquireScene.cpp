@@ -9,12 +9,12 @@ USING_NS_CC;
 #include "ATileSprite.h"
 #include <algorithm>
 
-ccColor3B COMPANYCOLOR[NUMBER_OF_STOCKS]={ 
+ccColor3B COMPANYCOLOR[MAXNUMBER_OF_STOCKS]={ 
 	ccc3(255,0,0),   ccc3(0,255,0),   ccc3(0,0,255),
 	ccc3(255,255,0), ccc3(255,0,255), ccc3(0,255,255),
 	ccc3(255,255,255)
 };
-ccColor4B COMPANYCOLOR4[NUMBER_OF_STOCKS]={ 
+ccColor4B COMPANYCOLOR4[MAXNUMBER_OF_STOCKS]={ 
 	ccc4(255,0,0,100),   ccc4(0,255,0,100),   ccc4(0,0,255,100),
 	ccc4(255,255,0,100), ccc4(255,0,255,100), ccc4(0,255,255,100),
 	ccc4(255,128,255,100)
@@ -60,7 +60,7 @@ void AcquireScene::initGameUI()
 
 
 extern char COMPANYNAME[NUMBER_OF_STOCKS][20];
-
+extern char info[2000];
 void AcquireScene::updateGameRender(){
 	const vector<Block> currentblocks = pGame->getAllBlocks();
 	for( auto it=currentblocks.begin(); it!=currentblocks.end(); ++it ){
@@ -154,7 +154,7 @@ void PlayerLayer::initPlayerUI()
 	pl->setPosition(  ccp(BLOCK_SIZE*9.5,BLOCK_SIZE*1.25) );
 	this->addChild( pl, 0, 8 );
 
-	for( UINT i=0; i<5; i++ ){
+	for( UINT i=0; i<NUMBER_OF_STOCKS; i++ ){
 		pl = createImageLabel(ccp(-BLOCK_SIZE,-BLOCK_SIZE/4),CCRectMake(0,BLOCK_SIZE*(1+i),BLOCK_SIZE*2,BLOCK_SIZE),FONT_SIZE*1.5);
 		pl->setPosition(  ccp(BLOCK_SIZE*11.5f,dy+(1+i)*BLOCK_SIZE) );
 		this->addChild( pl, 0, 9+i );
@@ -171,17 +171,28 @@ void PlayerLayer::initPlayerUI()
 	pl->setVisible( false );
 	this->addChild( pl, 1, 111 );
 	pHintLabel = pl;
+
 	updatePlayerRender();
+}
+
+void PlayerLayer::createMenuContent(){
+	pMenu = CCMenu::create();
+	CCLabelTTF* pl = createImageLabel(ccp(0,BLOCK_SIZE/3),CCRectMake(0,0,BLOCK_SIZE,BLOCK_SIZE),FONT_SIZE,"OKAY");
+	pMenuOK = CCMenuItemLabel::create( pl);
+	pMenuOK->setPosition( BLOCK_SIZE*7, -2*BLOCK_SIZE );
+	pMenu->setPosition( ccp(BLOCK_SIZE*2,BLOCK_SIZE*4) );
+	pMenu->setVisible(true);
+	pMenu->addChild( pMenuOK, 0, 111 );
+	addChild( pMenu );
+}
+
+void PlayerLayer::clearMenuContent(){
+	pMenu->removeFromParentAndCleanup(true );
 }
 
 
 void PlayerLayer::updatePlayerRender(){
 	UINT i = 0;
-	/*std::vector<ATile> handtiles;
-	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it ){
-		handtiles.push_back( *it );
-	}
-	sort( handtiles.begin(), handtiles.end() );*/
 	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it,++i ){
 		CCLabelTTF* pl = (CCLabelTTF*)this->getChildByTag( 1+i );
 		pl->setString( it->getCaption().c_str() );
@@ -197,6 +208,9 @@ void PlayerLayer::updatePlayerRender(){
 		sprintf_s( info, "%c*%d", COMPANYNAME[i][0], pplayer->stocks[i] );
 		pl->setString( info );
 	}
+
+	pl = (CCLabelTTF*)this->getChildByTag( 0 );
+	//pl->setVisible( pGame->isStupidHumanSTurn() );//TBD
 	
 }
 
@@ -207,8 +221,10 @@ bool PlayerLayer::init(){
     CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
     CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 
-	this->setTouchEnabled(true);
-	inoperation = false;
+	setTouchEnabled(true);
+	selected_company = WORLDWIDE;
+	amount = 1;
+
     return true;
 }
 
@@ -216,29 +232,7 @@ void PlayerLayer::setPlayerName( string name ){
 	id = name; 
 }
 
-void PlayerLayer::updatePlayerLogic(){
-	if( inoperation ) return;
-	GAMESTAGE stage = pGame->getGameState();
-	if( stage == TO_PLACE_TILE ){
-		askPlayerToPlaceTile();
-		inoperation = true;
-	}
-	else if( stage == TO_BUY_STOCK ){
-		pGame->updateGameStage();
-	}
-	else if( stage == TO_SETUP_COMPANY ){
-		pGame->updateGameStage();
-	}
-	else if( stage == TO_SELL_STOCK ){
-		pGame->updateGameStage();
-	}
-	else if ( stage == TO_CONVERT_STOCK ){
-		pGame->updateGameStage();
-	}
-}
-
 const PlaceATileOrder PlayerLayer::decidePlaceATile( const GameStatus& bs ){
-	//const ATile& t = *( pplayer->ATiles.begin() );
 	UINT i = 0;
 	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it,++i ){
 		if( i==selected_tile_index){
@@ -247,6 +241,22 @@ const PlaceATileOrder PlayerLayer::decidePlaceATile( const GameStatus& bs ){
 		}
 	}
 	return DefaultAI::decidePlaceATile( bs );
+}
+const ConvertStockOrder PlayerLayer::decideDoStockConversion(const GameStatus& bs ){
+	ConvertStockOrder od( selected_company , amount );
+	return od;
+}
+const BuyStockOrder PlayerLayer::decideBuyStocks( const GameStatus& bs){
+	BuyStockOrder od( selected_company , amount );
+	return od;
+}
+const SellStockOrder PlayerLayer::decideSellStock( const GameStatus& bs){
+	SellStockOrder od( selected_company , amount );
+	return od;
+}
+const SetupCompanyOrder PlayerLayer::decideSetupCompany( const GameStatus& bs ){
+	SetupCompanyOrder od(selected_company);
+	return od;
 }
 
 void PlayerLayer::setGameStatus( GameStatus* gs ){
@@ -259,48 +269,208 @@ void PlayerLayer::toggleDimmedBackGround( bool toggled ){
 }
 
 void PlayerLayer::askPlayerToPlaceTile(){
-	CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
-    CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
 	toggleDimmedBackGround(true);
 	pHintLabel->setVisible(true);
 	pHintLabel->setString("Please select a Tile");
-	pMenu = CCMenu::create();
-
+	createMenuContent();
 	UINT i = 0;
 	CCLabelTTF* pl;
 	for( auto it=pplayer->ATiles.begin(); it!=pplayer->ATiles.end(); ++it,++i ){
 		pl = createImageLabel(ccp(0,-FONT_SIZE/2),CCRectMake(BLOCK_SIZE,0,BLOCK_SIZE,BLOCK_SIZE),FONT_SIZE*1.2, it->getCaption());
 		CCMenuItemLabel* mi = CCMenuItemLabel::create(pl);
-		mi->initWithTarget(this, menu_selector(PlayerLayer::onPlayerSelectedAnATile) );
+		mi->initWithTarget(this, menu_selector(PlayerLayer::onPlayerPlaceATile) );
 		mi->setPosition( i*BLOCK_SIZE*1.5, BLOCK_SIZE );
 		mi->setScale(1.5);
 		pMenu->addChild(mi,0,i);
 	}
 	
-	pl = createImageLabel(ccp(0,BLOCK_SIZE/3),CCRectMake(0,0,BLOCK_SIZE,BLOCK_SIZE),FONT_SIZE,"OKAY");
-	CCMenuItemLabel* mi = CCMenuItemLabel::create( pl, this, menu_selector(PlayerLayer::onPlayerPlacedTile) );
-	mi->setPosition( BLOCK_SIZE*7, -2*BLOCK_SIZE );
-	pMenu->addChild(mi,0,11);
-	pMenu->setPosition( ccp(BLOCK_SIZE*2,BLOCK_SIZE*4) );
-	this->addChild( pMenu );
-}
+	pMenuOK->setTarget(this,menu_selector(PlayerLayer::onPlayerTilePlaced));
+	ready = false;
 
-void PlayerLayer::onPlayerSelectedAnATile(cocos2d::CCObject *pSender){
+}
+void PlayerLayer::onPlayerPlaceATile(cocos2d::CCObject *pSender){
 	CCMenuItemLabel* mi = ( CCMenuItemLabel* ) pSender ;
-	char info[50];
 	selected_tile_index = mi->getTag();
 	sprintf_s( info, "No.%d ATILE selected", selected_tile_index );
 	pHintLabel->setString(info);
 
 }
-
-void PlayerLayer::onPlayerPlacedTile(cocos2d::CCObject *pSender){
-	pGame->updateGameStage();
+void PlayerLayer::onPlayerTilePlaced(cocos2d::CCObject *pSender){
 	this->setTouchEnabled(true);
-	pMenu->removeFromParentAndCleanup( true );
+	clearMenuContent();
 	pHintLabel->setVisible(false);
 	toggleDimmedBackGround(false);
-	inoperation = false;
+	ready = true;
+}
+
+void PlayerLayer::askPlayerToBuyStock(){
+	toggleDimmedBackGround(true);
+	pHintLabel->setVisible(true);
+	pHintLabel->setString("Please select stock to buy:");
+	createMenuContent();
+	pMenu->setVisible(true);
+	selected_company = WORLDWIDE;
+	amount = 1;
+	UINT i = 0;
+	CCLabelTTF* pl;
+	for( UINT i=0; i<NUMBER_OF_STOCKS; i++ ){
+		pl = createImageLabel(ccp(-BLOCK_SIZE,-BLOCK_SIZE/4),CCRectMake(0,BLOCK_SIZE*(1+i),BLOCK_SIZE*2,BLOCK_SIZE),FONT_SIZE*1.5, COMPANYNAME[i]);
+		//pl->setPosition(  ccp(BLOCK_SIZE*11.5f,(1+i)*BLOCK_SIZE) );
+		CCMenuItemLabel* mi = CCMenuItemLabel::create(pl);
+		mi->initWithTarget(this, menu_selector(PlayerLayer::onPlayerBuyStock) );
+		mi->setPosition( 2*i*BLOCK_SIZE, BLOCK_SIZE );
+		pMenu->addChild(mi,0,i);
+	}
+	pMenuOK->setTarget(this,menu_selector(PlayerLayer::onPlayerStockBought));
+	ready = false;
+
+}
+void PlayerLayer::onPlayerBuyStock(cocos2d::CCObject *pSender){
+	CCMenuItemLabel* mi = ( CCMenuItemLabel* ) pSender ;
+	COMPANY newselection = (COMPANY)mi->getTag();
+	if( selected_company == newselection ){
+		amount ++ ;
+	}
+	else{
+		selected_company = newselection;
+		amount = 1;
+	}
+	sprintf_s( info, "Buy [%s]*%d", COMPANYNAME[selected_company], amount );
+	pHintLabel->setString(info);
+
+}
+void PlayerLayer::onPlayerStockBought(cocos2d::CCObject *pSender){
+	this->setTouchEnabled(true);
+	clearMenuContent();
+	pHintLabel->setVisible(false);
+	toggleDimmedBackGround(false);
+	ready = true;
+}
+
+void PlayerLayer::askPlayerToSetupCompany(){
+	toggleDimmedBackGround(true);
+	pHintLabel->setVisible(true);
+	pHintLabel->setString("Please select a company to setup:");
+	createMenuContent();
+	pMenu->setVisible(true);
+	selected_company = WORLDWIDE;
+	amount = 1;
+	UINT i = 0;
+	CCLabelTTF* pl;
+	for( UINT i=0; i<NUMBER_OF_STOCKS; i++ ){
+		pl = createImageLabel(ccp(-BLOCK_SIZE,-BLOCK_SIZE/4),CCRectMake(0,BLOCK_SIZE*(1+i),BLOCK_SIZE*2,BLOCK_SIZE),FONT_SIZE*1.5, COMPANYNAME[i]);
+		//pl->setPosition(  ccp(BLOCK_SIZE*11.5f,(1+i)*BLOCK_SIZE) );
+		CCMenuItemLabel* mi = CCMenuItemLabel::create(pl);
+		mi->initWithTarget(this, menu_selector(PlayerLayer::onPlayerSetupCompany) );
+		mi->setPosition( 2*i*BLOCK_SIZE, BLOCK_SIZE );
+		pMenu->addChild(mi,0,i);
+	}
+	pMenuOK->setTarget(this,menu_selector(PlayerLayer::onPlayerCompanySetup));
+	ready = false;
+
+}
+void PlayerLayer::onPlayerSetupCompany(cocos2d::CCObject *pSender){
+	CCMenuItemLabel* mi = ( CCMenuItemLabel* ) pSender ;
+	selected_company = (COMPANY)mi->getTag();
+	
+	sprintf_s( info, "setup [%s]", COMPANYNAME[selected_company] );
+	pHintLabel->setString(info);
+
+}
+void PlayerLayer::onPlayerCompanySetup(cocos2d::CCObject *pSender){
+	this->setTouchEnabled(true);
+	clearMenuContent();
+	pHintLabel->setVisible(false);
+	toggleDimmedBackGround(false);
+	ready = true;
+}
+
+void PlayerLayer::askPlayerToSellStock(){
+	toggleDimmedBackGround(true);
+	pHintLabel->setVisible(true);
+	pHintLabel->setString("Please select stock to sell:");
+	createMenuContent();
+	pMenu->setVisible(true);
+	selected_company = WORLDWIDE;
+	amount = 1;
+	UINT i = 0;
+	CCLabelTTF* pl;
+	for( UINT i=0; i<NUMBER_OF_STOCKS; i++ ){
+		pl = createImageLabel(ccp(-BLOCK_SIZE,-BLOCK_SIZE/4),CCRectMake(0,BLOCK_SIZE*(1+i),BLOCK_SIZE*2,BLOCK_SIZE),FONT_SIZE*1.5, COMPANYNAME[i]);
+		//pl->setPosition(  ccp(BLOCK_SIZE*11.5f,(1+i)*BLOCK_SIZE) );
+		CCMenuItemLabel* mi = CCMenuItemLabel::create(pl);
+		mi->initWithTarget(this, menu_selector(PlayerLayer::onPlayerSellStock) );
+		mi->setPosition( 2*i*BLOCK_SIZE, BLOCK_SIZE );
+		pMenu->addChild(mi,0,i);
+	}
+	pMenuOK->setTarget(this,menu_selector(PlayerLayer::onPlayerStockSold));
+	ready = false;
+
+}
+void PlayerLayer::onPlayerSellStock(cocos2d::CCObject *pSender){
+	CCMenuItemLabel* mi = ( CCMenuItemLabel* ) pSender ;
+	COMPANY newselection = (COMPANY)mi->getTag();
+	if( selected_company == newselection ){
+		amount ++ ;
+	}
+	else{
+		selected_company = newselection;
+		amount = 1;
+	}
+	sprintf_s( info, "Sell [%s]*%d", COMPANYNAME[selected_company], amount );
+	pHintLabel->setString(info);
+
+}
+void PlayerLayer::onPlayerStockSold(cocos2d::CCObject *pSender){
+	this->setTouchEnabled(true);
+	clearMenuContent();
+	pHintLabel->setVisible(false);
+	toggleDimmedBackGround(false);
+	ready = true;
+}
+
+void PlayerLayer::askPlayerToConvertStock(){
+	toggleDimmedBackGround(true);
+	pHintLabel->setVisible(true);
+	pHintLabel->setString("Please select stock to convert:");
+	createMenuContent();
+	pMenu->setVisible(true);
+	selected_company = WORLDWIDE;
+	amount = 1;
+	UINT i = 0;
+	CCLabelTTF* pl;
+	for( UINT i=0; i<NUMBER_OF_STOCKS; i++ ){
+		pl = createImageLabel(ccp(-BLOCK_SIZE,-BLOCK_SIZE/4),CCRectMake(0,BLOCK_SIZE*(1+i),BLOCK_SIZE*2,BLOCK_SIZE),FONT_SIZE*1.5, COMPANYNAME[i]);
+		//pl->setPosition(  ccp(BLOCK_SIZE*11.5f,(1+i)*BLOCK_SIZE) );
+		CCMenuItemLabel* mi = CCMenuItemLabel::create(pl);
+		mi->initWithTarget(this, menu_selector(PlayerLayer::onPlayerConvertStock) );
+		mi->setPosition( 2*i*BLOCK_SIZE, BLOCK_SIZE );
+		pMenu->addChild(mi,0,i);
+	}
+	pMenuOK->setTarget(this,menu_selector(PlayerLayer::onPlayerStockConverted));
+	ready = false;
+
+}
+void PlayerLayer::onPlayerConvertStock(cocos2d::CCObject *pSender){
+	CCMenuItemLabel* mi = ( CCMenuItemLabel* ) pSender ;
+	COMPANY newselection = (COMPANY)mi->getTag();
+	if( selected_company == newselection ){
+		amount ++ ;
+	}
+	else{
+		selected_company = newselection;
+		amount = 1;
+	}
+	sprintf_s( info, "[%s]*%d", COMPANYNAME[selected_company], amount );
+	pHintLabel->setString(info);
+
+}
+void PlayerLayer::onPlayerStockConverted(cocos2d::CCObject *pSender){
+	this->setTouchEnabled(true);
+	clearMenuContent();
+	pHintLabel->setVisible(false);
+	toggleDimmedBackGround(false);
+	ready = true;
 }
 
 
@@ -314,13 +484,12 @@ bool AcquireGameScene::init()
 		pAcquireLayer->retain();
 		addChild( pAcquireLayer,0 );
 
-		pPlayerLayer = PlayerLayer::create();
+		pPlayerLayer = AutomaticPlayerLayer::create();
 		pPlayerLayer->setPlayerName("zhenw");
 		pPlayerLayer->retain();
 		addChild( pPlayerLayer,1 );
 
 		pGame = new Game;
-		//DefaultAI* pai1 = new DefaultAI("N1");
 		pAcquireLayer->setGameStatus( &pGame->gs );
 		pPlayerLayer->setGameStatus( &pGame->gs );
 
@@ -354,13 +523,11 @@ bool AcquireGameScene::init()
 }
 
 void AcquireGameScene::updateGame( float dt){
-	if( !pGame->isEndOfGame() && pPlayerLayer->inoperation == false ){
-		pGame->runTheGameOneRound();
+	if( !pGame->isEndOfGame()  ){
+		//pGame->runTheGameOneRound();
+		pGame->runTheGameOneLoop();
 		pAcquireLayer->updateGameRender();
 		pPlayerLayer->updatePlayerRender();
-		if( pGame->isStupidHumanSTurn() ){
-			pPlayerLayer->updatePlayerLogic();
-		}
 	}
 }
 

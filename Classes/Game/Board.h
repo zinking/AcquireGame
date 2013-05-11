@@ -1,10 +1,10 @@
 #pragma once
 #include <set>
 #include <vector>
+#include <queue>
 #include <ctime>
 using namespace std;
 #include "definitions.h"
-#include "Player.h"
 
 struct ATile{
 	int row;
@@ -60,6 +60,8 @@ struct MergeEvent{
 	Block* adjblocks[4];
 	vector<Block*> sorted_blocks;
 	vector<COMPANY>  companies_to_be_removed;
+	Block acquiring;
+	Block acquired;
 	ATile newATile;
 	MergeEvent( vector<Block>& allBlocks, const ATile& newATile );
 	Block* getBlockWithATile( vector<Block>& allblocks, ATile& newATile);
@@ -98,7 +100,7 @@ struct Order;
 struct Game;
 /*this class intends to provide trimmed down access to the game class*/
 struct GameStatus{
-	Game* pbd;
+	const Game* pbd;
 public:
 	GameStatus( );
 	/*this method intends to tell player what blocks are available now*/
@@ -112,14 +114,17 @@ public:
 	const Block* getAcquiringBlock()const;
 	const Block* getAcquiredBlock()const;
 
-	const GAMESTAGE getGameState() const;
-	void updateGameStage(  );
+	//const GAMESTAGE getGameState() const;
+	//void updateGameStage(  );
 	const string getLastestMessage() const;
+	const int getRound() const;
+	//const bool isStupidHumanSTurn() const;
 
 };
 
-
+class GameCommand;
 struct Game{
+	queue<GameCommand*> commandqueue;
 	int stocks[NUMBER_OF_STOCKS];
 	vector<ATile> allATiles;
 	vector<Block> allblocks;
@@ -129,31 +134,35 @@ struct Game{
 	StockTable stocktable;
 	GAMESTAGE stage;
 	MergeEvent* pme;
+	//MergeEvent merge_event;
 	int round;
 	ATile current_ATile;
 	Game( );
+	void addCommand( GameCommand* gs ){ commandqueue.push( gs ); }
 	void initGame();
 	void addPlayer( Player* player );
 	void initPlayerWithATiles();
 	bool isEndOfGame();
-	bool isStupidHumanSTurn() const;
-	const ATile askPlayerToPlaceATile( Player* p );
+	//bool isStupidHumanSTurn() const;
+	//const ATile askPlayerToPlaceATile( Player* p );
 	void allocatePlayerOneATile( Player* p );
-	void askPlayerToBuyStock(  Player* p );
-	void askPlayerToSetupCompany(  Player* p , const ATile& t  );
-	void askPlayersToSellStock( const vector<Player*> shareholders );
-	void askPlayersToConvertStock( const vector<Player*> shareholders );
-	void runTheGame();
-	void runTheGameForAI();
-	void runTheGameForHuman();
-	void runTheGameOneRound();
-	void runTheGameOneRoundForStupidHuman();
-	void runTheGameOneRoundForSmartAI();
+	//void askPlayerToBuyStock(  Player* p );
+	//void askPlayerToSetupCompany(  Player* p , const ATile& t  );
+	//void askPlayersToSellStock( const vector<Player*> shareholders );
+	//void askPlayersToConvertStock( const vector<Player*> shareholders );
+	//void runTheGame();
+	//void runTheGameForAI();
+	//void runTheGameForHuman();
+	//void runTheGameOneRound();
+	void runTheGameOneLoop();
+	void runTheGameLoop();
+	//void runTheGameOneRoundForStupidHuman();
+	//void runTheGameOneRoundForSmartAI();
 	vector<int> getAvailableNewCompanies();
-	void doAcquireOnce( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via );
-	void doAcquire(MergeEvent& me );
-	void doAcquireForStupidHumanOnce();
-	void updateGameStageForStupidHuman( );
+	//void doAcquireOnce( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via );
+	//void doAcquire(MergeEvent& me );
+	//void doAcquireForStupidHumanOnce();
+	//void updateGameStageForStupidHuman( );
 	void allocateBonusFor( enum COMPANY c , const vector<Player*> shs );
 	void statistics();
 

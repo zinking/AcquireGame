@@ -125,8 +125,8 @@
     <ClCompile Include="..\Classes\ATileSprite.cpp" />
     <ClCompile Include="..\Classes\Game\Board.cpp" />
     <ClCompile Include="..\Classes\Game\definitions.cpp" />
+    <ClCompile Include="..\Classes\Game\GameStage.cpp" />
     <ClCompile Include="..\Classes\Game\order.cpp" />
-    <ClCompile Include="..\Classes\Game\Player.cpp" />
     <ClCompile Include="..\Classes\Game\PlayerAI.cpp" />
     <ClCompile Include="..\Classes\Popup.cpp" />
     <ClCompile Include="main.cpp" />
@@ -138,8 +138,8 @@
     <ClInclude Include="..\Classes\ATileSprite.h" />
     <ClInclude Include="..\Classes\Game\Board.h" />
     <ClInclude Include="..\Classes\Game\definitions.h" />
+    <ClInclude Include="..\Classes\Game\GameStage.h" />
     <ClInclude Include="..\Classes\Game\order.h" />
-    <ClInclude Include="..\Classes\Game\Player.h" />
     <ClInclude Include="..\Classes\Game\PlayerAI.h" />
     <ClInclude Include="..\Classes\Game\Stock.h" />
     <ClInclude Include="..\Classes\Popup.h" />

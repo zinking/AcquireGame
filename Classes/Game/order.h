@@ -1,3 +1,5 @@
+#ifndef __ORDER_H__
+#define __ORDER_H__
 struct GameStatus;
 struct Player;
 struct ATile;
@@ -19,6 +21,7 @@ struct PlaceATileOrder:Order{
 	bool execute( Game* g, Player* p )const;
 };
 
+
 struct SellStockOrder:Order{
 	COMPANY c;
 	int  count;
@@ -26,6 +29,13 @@ struct SellStockOrder:Order{
 	string toString();
 	bool isValid( const GameStatus& gs, const Player& from )const;
 	bool execute( Game* g, Player* p )const;
+};
+
+struct LiquidateStockOrder:SellStockOrder{
+	COMPANY c;
+	int  count;
+	LiquidateStockOrder( COMPANY cc, int amt ):SellStockOrder(cc,amt){}
+	bool isValid( const GameStatus& gs, const Player& from )const;
 };
 
 struct ConvertStockOrder:Order{
@@ -53,6 +63,8 @@ struct SetupCompanyOrder:Order{
 	bool isValid( const GameStatus& gs, const Player& from )const;
 	bool execute( Game* g, Player* p )const;
 };
+
+#endif
 
 
 
