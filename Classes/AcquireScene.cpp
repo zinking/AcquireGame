@@ -232,25 +232,20 @@ void PlayerLayer::updatePlayerLogic(){
 	if( inoperation ) return;
 	GAMESTAGE stage = pGame->getGameState();
 	if( stage == TO_PLACE_TILE ){
-		//stage = TILE_PLACED;
 		askPlayerToPlaceTile();
 		inoperation = true;
 	}
 	else if( stage == TO_BUY_STOCK ){
-		//stage = STOCK_BOUGHT;
-		pGame->setGameStage( STOCK_BOUGHT );
+		pGame->updateGameStage();
 	}
 	else if( stage == TO_SETUP_COMPANY ){
-		//stage = STOCK_BOUGHT;
-		pGame->setGameStage( COMPANY_SETUP );
+		pGame->updateGameStage();
 	}
 	else if( stage == TO_SELL_STOCK ){
-		//stage = STOCK_SOLD;
-		pGame->setGameStage( STOCK_SOLD );
+		pGame->updateGameStage();
 	}
 	else if ( stage == TO_CONVERT_STOCK ){
-		//stage = STOCK_CONVERTED;
-		pGame->setGameStage( STOCK_CONVERTED );
+		pGame->updateGameStage();
 	}
 }
 
@@ -277,12 +272,10 @@ void PlayerLayer::askPlayerToPlaceTile(){
 }
 
 void PlayerLayer::onPlayerPlacedTile(cocos2d::CCObject *pSender){
-	//stage = TILE_PLACED;
-	pGame->setGameStage( TILE_PLACED );
+	pGame->updateGameStage();
 	this->setTouchEnabled(true);
 	popup->setVisible(false);
 	inoperation = false;
-	//popup->removeFromParentAndCleanup(true);
 }
 
 

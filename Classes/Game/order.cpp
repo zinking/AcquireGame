@@ -91,7 +91,7 @@ string ConvertStockOrder::toString(){
 
 bool ConvertStockOrder::isValid( const GameStatus& gs, const Player& from )const{
 	if( c>=0 && c<=NUMBER_OF_STOCKS )
-		return c==gs.AcquiredBlock.c && count > 0 && from.getStockAmt( c ) > count;
+		return c==gs.getAcquiredBlock()->c && count > 0 && from.getStockAmt( c ) > count;
 	else return false;
 }
 
@@ -99,8 +99,8 @@ bool ConvertStockOrder::execute( Game* g, Player* p )const{
 	if( isValid( g->gs, *p )){
 		int stocks_converted  = count/2;
 		int stocks_to_convert = stocks_converted*2;
-		p->addStock( g->gs.AcquiredBlock.c, stocks_to_convert * -1 );
-		p->addStock( g->gs.AcquiringBlock.c, stocks_converted );
+		p->addStock( g->gs.getAcquiredBlock()->c, stocks_to_convert * -1 );
+		p->addStock( g->gs.getAcquiringBlock()->c, stocks_converted );
 
 		sprintf_s( info, "PLAYER[%s] converted %d shares of [%s]", p->getID(), count, COMPANYNAME[c] );
 		cout << info << endl;

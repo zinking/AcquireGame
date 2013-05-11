@@ -7,7 +7,7 @@
 
 //AI cannot change PLAYER status
 const ConvertStockOrder DefaultAI::decideDoStockConversion(const GameStatus& bs ){
-	COMPANY c = bs.AcquiredBlock.c;
+	COMPANY c = bs.getAcquiredBlock()->c;
 	ConvertStockOrder od( c , pplayer->getStockAmt( c ) );
 	return od;
 }
