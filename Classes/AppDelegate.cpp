@@ -75,7 +75,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // create a scene. it's an autorelease object
     
-	CCScene *pScene = AcquireGameScene::create();
+	//CCScene *pScene = AcquireGameScene::create_select_scene();
+	 //CCScene *pScene = AcquireSelectScene::create();
+	 CCScene *pScene = AcquireGameScene::create_splash_scene();
 	 pDirector->runWithScene(pScene);
     return true;
 }

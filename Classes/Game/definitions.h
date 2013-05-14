@@ -7,6 +7,7 @@ static const int MAXNUMBER_OF_STOCKS=7;
 static const int NUMBER_OF_ATileS_EACH=6;
 static const int BLOCK_SIZE = 40;
 static const int FONT_SIZE = 12;
+static const int MAXAI = 2;
 
 //typedef enum{	WORLDWIDE,	SACKSON,	FESTIVAL,	IMPERIAL,	AMERICAN,	CONTINENTAL,	TOWER} COMPANY;
 enum COMPANY{	WORLDWIDE,	SACKSON,	FESTIVAL,	IMPERIAL,	AMERICAN,	CONTINENTAL,	TOWER} ;

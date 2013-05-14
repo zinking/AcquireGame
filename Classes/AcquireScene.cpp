@@ -20,13 +20,19 @@ ccColor4B COMPANYCOLOR4[MAXNUMBER_OF_STOCKS]={
 	ccc4(255,128,255,100)
 };
 
+CCLabelTTF* createTextureLabel( CCPoint& ipos, CCRect& rect, CCTexture2D* pTexture, int fontsize , string text){
+	CCLabelTTF* pl = CCLabelTTF::create( text.c_str(), "Arial", fontsize, 
+		CCSize( BLOCK_SIZE,BLOCK_SIZE*2), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
+	CCSprite* avtar  = CCSprite::createWithTexture(pTexture,rect);
+	avtar->setPosition(ipos);
+	avtar->setAnchorPoint(ccp(0,0));
+	pl->addChild(avtar);
+	return pl;
+}
+
+
 void AcquireScene::setGameStatus( GameStatus* gs ){
 	pGame = gs;
-}
-CCScene* AcquireScene::scene()
-{
-    CCScene *scene = CCScene::create();
-    return scene;
 }
 
 void AcquireScene::initGameUI()
@@ -57,7 +63,6 @@ void AcquireScene::initGameUI()
 
 	updateGameRender();
 }
-
 
 extern char COMPANYNAME[NUMBER_OF_STOCKS][20];
 extern char info[2000];
@@ -125,13 +130,7 @@ void AcquireScene::showStatusPopup()
 
 //////////////////////////////////////////////////////////////////////
 CCLabelTTF* PlayerLayer::createImageLabel( CCPoint& ipos, CCRect& rect,  int fontsize , string text){
-	CCLabelTTF* pl = CCLabelTTF::create( text.c_str(), "Arial", fontsize, 
-		CCSize( BLOCK_SIZE,BLOCK_SIZE*2), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
-	CCSprite* avtar  = CCSprite::createWithTexture(pTexture,rect);
-	avtar->setPosition(ipos);
-	avtar->setAnchorPoint(ccp(0,0));
-	pl->addChild(avtar);
-	return pl;
+	 return createTextureLabel( ipos, rect, pTexture,  fontsize ,  text);
 }
 
 void PlayerLayer::initPlayerUI()
@@ -189,7 +188,6 @@ void PlayerLayer::createMenuContent(){
 void PlayerLayer::clearMenuContent(){
 	pMenu->removeFromParentAndCleanup(true );
 }
-
 
 void PlayerLayer::updatePlayerRender(){
 	UINT i = 0;
@@ -475,7 +473,6 @@ void PlayerLayer::onPlayerStockConverted(cocos2d::CCObject *pSender){
 
 
 ////////////////////////////////////////////////////////////////////////
-
 bool AcquireGameScene::init()
 {
 	if( CCScene::init() )
@@ -485,7 +482,7 @@ bool AcquireGameScene::init()
 		addChild( pAcquireLayer,0 );
 
 		pPlayerLayer = AutomaticPlayerLayer::create();
-		pPlayerLayer->setPlayerName("zhenw");
+		pPlayerLayer->setPlayerName("Player");
 		pPlayerLayer->retain();
 		addChild( pPlayerLayer,1 );
 
@@ -493,7 +490,7 @@ bool AcquireGameScene::init()
 		pAcquireLayer->setGameStatus( &pGame->gs );
 		pPlayerLayer->setGameStatus( &pGame->gs );
 
-		DefaultAI* pai2 = new DefaultAI("N2");
+		DefaultAI* pai2 = new DefaultAI("AI1");
 
 		Player* pa = new Player(pPlayerLayer);
 		pPlayerLayer->setPlayer( pa );
@@ -513,7 +510,7 @@ bool AcquireGameScene::init()
 		pPlayerLayer->updatePlayerRender();
 		
 		schedule( schedule_selector( AcquireGameScene::updateGame ), 1.0f	);
-		//scheduleOnce( schedule_selector( AcquireGameScene::updateGame ), 2.0f	);
+		//scheduleOnce( schedule_selector( AcquireGameScene::switchToEndScene ), 2.0f	);
 		return true;
 	}
 	else
@@ -528,6 +525,9 @@ void AcquireGameScene::updateGame( float dt){
 		pGame->runTheGameOneLoop();
 		pAcquireLayer->updateGameRender();
 		pPlayerLayer->updatePlayerRender();
+	}
+	else{
+		switchToEndScene(this);
 	}
 }
 
@@ -546,4 +546,210 @@ AcquireGameScene::~AcquireGameScene()
 	}
 
 	delete pGame;
+}
+
+
+CCScene* AcquireGameScene::create_gameend_scene()
+{
+   CCScene *scene = CCScene::create();
+	CCLayerColor* player = CCLayerColor::create();
+	CCSprite* pLogo = CCSprite::create("r4.png");
+	pLogo->setAnchorPoint(ccp(0,0));
+	player->addChild( pLogo,0 );
+	scene->addChild( player );
+
+	CCMenu* pbtn = CCMenu::create();
+	pbtn->setPosition( ccp( BLOCK_SIZE*9,BLOCK_SIZE*1 ));
+	player->addChild( pbtn,1 );
+	CCTexture2D* bt  =  CCTextureCache::sharedTextureCache()->textureForKey("blank.png");
+	CCTexture2D* bst =  CCTextureCache::sharedTextureCache()->textureForKey("blank_s.png");
+
+	CCLabelTTF* pl = CCLabelTTF::create( "Play Again", "Arial", FONT_SIZE*1.5, 
+		CCSize( BLOCK_SIZE*4,BLOCK_SIZE*1.5), kCCTextAlignmentCenter,kCCVerticalTextAlignmentCenter); 
+	CCSprite* pbutton  = CCSprite::createWithTexture( bt );
+	CCSprite* pbuttons  = CCSprite::createWithTexture( bst );
+	CCMenuItemSprite* pii = CCMenuItemSprite::create( pbutton,pbuttons,player,menu_selector(AcquireGameScene::switchToMainScene) );
+	pii->addChild( pl, 1, 0 );
+	pl->setPosition( ccp(BLOCK_SIZE*1.75,BLOCK_SIZE*0.75));
+	pbtn->addChild( pii,0,12 );
+
+	for( UINT i=0; i<pGame->players.size(); i++ ){
+		CCLabelTTF* pl = CCLabelTTF::create( pGame->players[i]->toString().c_str(), "Arial", FONT_SIZE*1.5, 
+			CCSize( BLOCK_SIZE*8,BLOCK_SIZE*2), kCCTextAlignmentCenter,kCCVerticalTextAlignmentCenter);
+		pl->setPosition( ccp(BLOCK_SIZE*2,BLOCK_SIZE*(2+i)));
+		pl->setAnchorPoint(ccp(0,0));
+		player->addChild( pl,1 );
+	}
+
+	
+    return scene;
+}
+
+void AcquireGameScene::switchToMainScene(CCObject *pSender){
+	AcquireSelectScene *s = AcquireSelectScene::create();
+	
+	CCDirector::sharedDirector()->setDepthTest(true);
+	CCTransitionScene *transition = CCTransitionPageTurn::create(1.0f, s, false);
+	CCDirector::sharedDirector()->replaceScene(transition);
+}
+
+void AcquireGameScene::switchToEndScene(CCObject *pSender){
+	CCScene *s = create_gameend_scene();
+	CCDirector::sharedDirector()->setDepthTest(true);
+	CCTransitionScene *transition = CCTransitionPageTurn::create(1.0f, s, false);
+	CCDirector::sharedDirector()->replaceScene(transition);
+}
+
+CCScene* AcquireGameScene::create_splash_scene()
+{
+    CCScene *scene = CCScene::create();
+	CCLayerColor* player = CCLayerColor::create();
+	CCSprite* pLogo = CCSprite::create("r2.png");
+	pLogo->setAnchorPoint(ccp(0,0));
+	player->addChild( pLogo );
+	scene->addChild( player );
+	scene->scheduleOnce( schedule_selector( AcquireGameScene::switchToMainScene ), 2.0f	);
+    return scene;
+}
+////////////////////////////////////////////////////////////////////////
+bool AcquireSelectScene::init()
+{
+	if( CCScene::init() )
+	{
+		ai_num = 1;
+		initMainOptionsUI();
+		initAIOptionsUI();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+extern char ainame[3][10];
+
+void initMainOptionsUI();
+void AcquireSelectScene::initMainOptionsUI(){
+	pMainLayer = CCLayerColor::create();
+	this->addChild( pMainLayer );
+	CCSize  sz = CCDirector::sharedDirector()->getVisibleSize();
+	CCPoint op = CCDirector::sharedDirector()->getVisibleOrigin();
+	p_aimainmenu = CCMenu::create();
+	pMainLayer->addChild(p_aimainmenu, 0);
+	p_aimainmenu->setPosition(CCPointZero);
+	CCMenuItemImage *pci = CCMenuItemImage::create(
+		"vshuman.png",
+		"vshuman.png",
+		this,
+		NULL
+	);
+    
+	pci->setPosition(ccp(BLOCK_SIZE*6,BLOCK_SIZE*5));
+	p_aimainmenu->addChild( pci );
+   
+	pci = CCMenuItemImage::create(
+		"vsai.png",
+		"vsai.png",
+		this,
+		menu_selector(AcquireSelectScene::selectVSAIOptions)
+	);
+    
+	pci->setPosition(ccp(BLOCK_SIZE*6,BLOCK_SIZE*3));
+	p_aimainmenu->addChild( pci );
+	pMainLayer->setTouchEnabled(true);
+
+}
+void AcquireSelectScene::initAIOptionsUI(){
+	pAIOptionLayer = CCLayerColor::create();
+	pAIOptionLayer->setOpacity( 200 );
+	pAIOptionLayer->setVisible(false);
+	this->addChild( pAIOptionLayer,1 );
+	p_aimainmenu = CCMenu::create();
+	pAIOptionLayer->addChild(p_aimainmenu, 0);
+	p_aimainmenu->setPosition(CCPointZero);
+	
+
+	for( UINT i=0; i<MAXAI; i++ ){
+		seleted_ais[i] = NAIVE_AI;
+	}
+
+	//pTexture = CCTextureCache::sharedTextureCache()->addImage("r3.png");
+	CCTexture2D* bt  =  CCTextureCache::sharedTextureCache()->addImage("blank.png");
+	CCTexture2D* bst =  CCTextureCache::sharedTextureCache()->addImage("blank_s.png");
+	CCSprite* pbutton;
+	CCSprite* pbuttons;
+	CCLabelTTF* pl;
+	
+	CCSprite* avtar;
+	for( UINT i=0; i<MAXAI; i++ ){
+		AITYPE t = seleted_ais[i];
+		pl  = CCLabelTTF::create( ainame[t], "Arial", FONT_SIZE*1.5, 
+			CCSize( BLOCK_SIZE*4,BLOCK_SIZE*1.5), kCCTextAlignmentCenter,kCCVerticalTextAlignmentCenter); 
+		pbutton  = CCSprite::createWithTexture( bt );
+		pbuttons  = CCSprite::createWithTexture( bst );
+		paitypelabel[i] = CCMenuItemSprite::create( pbutton,pbuttons,this,menu_selector(AcquireSelectScene::onAITYPEChanged) );
+		pl->setPosition( ccp(BLOCK_SIZE*1.75,BLOCK_SIZE*0.75));
+		paitypelabel[i]->addChild( pl, 1, 0 );
+		paitypelabel[i]->setPosition(ccp(BLOCK_SIZE*3,BLOCK_SIZE*(5-i*2)));
+		p_aimainmenu->addChild( paitypelabel[i],0,i );
+	}
+
+	pl = CCLabelTTF::create( "", "Arial", FONT_SIZE*1.5, 
+		CCSize( BLOCK_SIZE*4,BLOCK_SIZE*1.5), kCCTextAlignmentCenter,kCCVerticalTextAlignmentCenter); 
+	pbutton  = CCSprite::createWithTexture( bt );
+	pbuttons  = CCSprite::createWithTexture( bst );
+	painumlabel = CCMenuItemSprite::create( pbutton,pbuttons,this,menu_selector(AcquireSelectScene::onAICountChanged) );
+	painumlabel->setPosition(ccp(BLOCK_SIZE*8,BLOCK_SIZE*5));
+	painumlabel->addChild( pl, 1, 0 );
+	pl->setPosition( ccp(BLOCK_SIZE*2,BLOCK_SIZE*0.75));
+	p_aimainmenu->addChild( painumlabel,0,11 );
+
+	pl = CCLabelTTF::create( "OKAY", "Arial", FONT_SIZE*1.5, 
+		CCSize( BLOCK_SIZE*4,BLOCK_SIZE*1.5), kCCTextAlignmentCenter,kCCVerticalTextAlignmentCenter); 
+	pbutton  = CCSprite::createWithTexture( bt );
+	pbuttons  = CCSprite::createWithTexture( bst );
+	CCMenuItemSprite* pii = CCMenuItemSprite::create( pbutton,pbuttons,this,menu_selector(AcquireSelectScene::onAISelected) );
+	pii->setPosition(ccp(BLOCK_SIZE*8,BLOCK_SIZE*3));
+	pii->addChild( pl, 1, 0 );
+	pl->setPosition( ccp(BLOCK_SIZE*1.75,BLOCK_SIZE*0.75));
+	p_aimainmenu->addChild( pii,0,12 );
+
+	pAIOptionLayer->setTouchEnabled(true);
+	updateAIOptionsUI();
+}
+void AcquireSelectScene::selectVSAIOptions(CCObject *pSender){
+	pAIOptionLayer->setVisible(true);
+}
+
+void AcquireSelectScene::onAICountChanged(CCObject *pSender){
+	ai_num = (ai_num + 1) % (MAXAI+1) ;
+	if( 0 == ai_num ) ai_num = 1;
+	updateAIOptionsUI();
+}
+
+void AcquireSelectScene::onAISelected(CCObject *pSender){
+	AcquireGameScene *s = AcquireGameScene::create();
+	CCDirector::sharedDirector()->setDepthTest(true);
+	CCTransitionScene *transition = CCTransitionPageTurn::create(1.0f, s, false);
+	CCDirector::sharedDirector()->replaceScene(transition);
+}
+
+void AcquireSelectScene::onAITYPEChanged(CCObject *pSender){
+	CCMenuItemLabel* mi = ( CCMenuItemLabel* ) pSender ;
+	int index = mi->getTag();
+	seleted_ais[index] =(AITYPE)( ( seleted_ais[index] + 1 ) % 3 );
+	updateAIOptionsUI();
+}
+
+void AcquireSelectScene::updateAIOptionsUI( ){
+	sprintf_s( info, "FIGHT VS %d AIs", ai_num );
+	CCLabelTTF* pl = (CCLabelTTF*)(painumlabel->getChildByTag(0));
+	pl->setString( info );
+	for( UINT i=0; i<MAXAI; i++ ){
+		CCLabelTTF* pl = (CCLabelTTF*)(paitypelabel[i]->getChildByTag(0));
+		pl->setString(ainame[seleted_ais[i]] );
+		paitypelabel[i]->setVisible( i<ai_num );
+	}
+
 }

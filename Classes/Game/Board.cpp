@@ -139,12 +139,12 @@ int Player::getStockAmt( const COMPANY c ) const{
 string Player::toString(){
 	string shstr;
 	for( int i=0;i<NUMBER_OF_STOCKS; i++ ){
-		if( stocks[i] > 0 ){
-			sprintf_s(info,"[%s(%d)] ", COMPANYNAME[i],stocks[i] );
+		if( stocks[i] >= 0 ){
+			sprintf_s(info,"%c(%d) ", COMPANYNAME[i][0],stocks[i] );
 			shstr += info;
 		}
 	}
-	sprintf_s( info, "PLAYER[%s] TOTALCASH[%d] SHARE:%s ", id.c_str(), cash,shstr.c_str() );
+	sprintf_s( info, "%s(%d$) %s ", id.c_str(), cash,shstr.c_str() );
 	return info;
 }
 

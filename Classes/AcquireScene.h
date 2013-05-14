@@ -1,5 +1,5 @@
-#ifndef __HELLOWORLD_SCENE_H__
-#define __HELLOWORLD_SCENE_H__
+#ifndef __ACQUIRE_SCENE_H__
+#define __ACQUIRE_SCENE_H__
 
 #include "cocos2d.h"
 #include "AppMacros.h"
@@ -26,7 +26,7 @@ public:
 	void initGameUI();
 
 	void updateGameRender();
-    static cocos2d::CCScene* scene();
+   
 	void showStatusPopup();
 
 	void setGameStatus( GameStatus* gs );
@@ -152,12 +152,50 @@ class AcquireGameScene : public cocos2d::CCScene
 public:
     AcquireGameScene() {};
     ~AcquireGameScene();
+	void updateGame( float dt);
     bool init();
     CREATE_FUNC(AcquireGameScene);
-
-	void updateGame( float dt);
-  
-    //CC_SYNTHESIZE_READONLY(GameOverLayer*, _layer, Layer);
+	static cocos2d::CCScene* create_splash_scene();
+	cocos2d::CCScene* create_gameend_scene();
+	void switchToMainScene(CCObject *pSender);
+	void switchToEndScene(CCObject *pSender);
 };
 
-#endif // __HELLOWORLD_SCENE_H__
+
+class AcquireSelectScene : public cocos2d::CCScene
+{
+	int ai_num;
+	enum AITYPE{ NAIVE_AI, ZHENAI, HOMAI };
+	AITYPE seleted_ais[MAXAI];
+	CCMenu* p_aioptionmenu;
+	CCMenu* p_aimainmenu;
+
+	CCLayerColor* pAIOptionLayer;
+	CCLayerColor* pMainLayer;
+
+	CCMenuItemSprite* painumlabel;
+	CCMenuItemSprite* paitypelabel[MAXAI];
+
+	CCTexture2D* pTexture;
+
+public:
+    AcquireSelectScene() {};
+	~AcquireSelectScene(){}
+    bool init();
+    CREATE_FUNC(AcquireSelectScene);
+
+	void selectVSAIOptions(CCObject *pSender);
+	void onAICountChanged(CCObject *pSender);
+	void onAITYPEChanged(CCObject *pSender);
+	void onAISelected(CCObject *pSender);
+
+	void updateAIOptionsUI( );
+	void initAIOptionsUI();
+
+	//void updateMainOptionsUI( );
+	void initMainOptionsUI();
+	
+};
+
+CCLabelTTF* createImageLabel( CCPoint& ipos, CCRect& rect, CCTexture2D* pTexture, int fontsize , string text);
+#endif
