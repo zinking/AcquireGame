@@ -14,13 +14,13 @@ ccColor3B COMPANYCOLOR[MAXNUMBER_OF_STOCKS]={
 	ccc3(255,255,0), ccc3(255,0,255), ccc3(0,255,255),
 	ccc3(255,255,255)
 };
-ccColor4B COMPANYCOLOR4[MAXNUMBER_OF_STOCKS]={ 
+ccColor4B COMPANYCOLOR4[MAXNUMBER_OF_STOCKS+1]={ 
 	ccc4(255,0,0,100),   ccc4(0,255,0,100),   ccc4(0,0,255,100),
 	ccc4(255,255,0,100), ccc4(255,0,255,100), ccc4(0,255,255,100),
-	ccc4(255,128,255,100)
+	ccc4(255,128,255,100), ccc4( 125,125,125,100)
 };
 
-CCLabelTTF* createTextureLabel( CCPoint& ipos, CCRect& rect, CCTexture2D* pTexture, int fontsize , string text){
+CCLabelTTF* createTextureLabel( const CCPoint& ipos, const CCRect& rect, CCTexture2D* pTexture, int fontsize , string text){
 	CCLabelTTF* pl = CCLabelTTF::create( text.c_str(), "Arial", fontsize, 
 		CCSize( BLOCK_SIZE,BLOCK_SIZE*2), kCCTextAlignmentCenter,kCCVerticalTextAlignmentBottom); 
 	CCSprite* avtar  = CCSprite::createWithTexture(pTexture,rect);
@@ -129,7 +129,7 @@ void AcquireScene::showStatusPopup()
 }
 
 //////////////////////////////////////////////////////////////////////
-CCLabelTTF* PlayerLayer::createImageLabel( CCPoint& ipos, CCRect& rect,  int fontsize , string text){
+CCLabelTTF* PlayerLayer::createImageLabel( const CCPoint& ipos, const CCRect& rect,  int fontsize , string text){
 	 return createTextureLabel( ipos, rect, pTexture,  fontsize ,  text);
 }
 

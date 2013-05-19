@@ -43,7 +43,7 @@ then
 fi
 
 # paths
-
+NDK_ROOT="D:\\Android\\android-ndk-r8e"
 if [ -z "${NDK_ROOT+aaa}" ];then
 echo "NDK_ROOT not defined. Please define NDK_ROOT in your environment or in local.properties"
 exit 1
@@ -54,6 +54,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 COCOS2DX_ROOT="$DIR/../../../.."
 APP_ROOT="$DIR/.."
 APP_ANDROID_ROOT="$DIR"
+
 
 echo "NDK_ROOT = $NDK_ROOT"
 echo "COCOS2DX_ROOT = $COCOS2DX_ROOT"

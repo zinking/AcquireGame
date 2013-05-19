@@ -5,6 +5,7 @@ using namespace std;
 struct GameStatus;
 struct ATile;
 struct Player;
+struct Block;
 
 struct PlaceATileOrder;
 struct SellStockOrder;
@@ -45,6 +46,28 @@ struct DefaultAI:PlayerAI{
 	DefaultAI(  ){ ready = true; }
 	//const string getID()const;
 	//AI cannot change PLAYER status
+	const ConvertStockOrder decideDoStockConversion(const GameStatus& bs );
+	const PlaceATileOrder decidePlaceATile( const GameStatus& bs );
+	const BuyStockOrder decideBuyStocks( const GameStatus& bs);
+	const SellStockOrder decideSellStock( const GameStatus& bs);
+	const SetupCompanyOrder decideSetupCompany( const GameStatus& bs );
+	
+	void fyiPlayerInfos( const vector<string> ids){}
+	void fyiPlayerBuyStockOrder( const string& player, const BuyStockOrder& ods ){}
+	void fyiPlayerConvertStockOrder( const string& player, const ConvertStockOrder& ods ){}
+	void fyiPlayerPlaceATileOrder( const string& player, const PlaceATileOrder& ods ){}
+	void fyiPlayerSellStockOrder( const string& player, const SellStockOrder& ods ){}
+	void fyiPlayerSetupCompanyOrder( const string& player, const SetupCompanyOrder& ods ){}
+};
+
+struct ZHENWAI:PlayerAI{
+	ZHENWAI( string iid ){ id = iid; ready = true; }
+	ZHENWAI(  ){ ready = true; }
+	
+	static int calculateTile2BlockDistance( const ATile& t, const Block& b );
+	static int calculateBlock2BlockDistance( const Block& b1, const Block& b2 );
+	static bool isTileNext2PlayerBlock( const ATile& t, const GameStatus& bs, const Player& p );
+
 	const ConvertStockOrder decideDoStockConversion(const GameStatus& bs );
 	const PlaceATileOrder decidePlaceATile( const GameStatus& bs );
 	const BuyStockOrder decideBuyStocks( const GameStatus& bs);

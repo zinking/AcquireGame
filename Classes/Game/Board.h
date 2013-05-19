@@ -3,6 +3,7 @@
 #include <vector>
 #include <queue>
 #include <ctime>
+#include <string>
 using namespace std;
 #include "definitions.h"
 
@@ -58,25 +59,36 @@ struct Player{
 
 struct MergeEvent{
 	Block* adjblocks[4];
-	vector<Block*> sorted_blocks;
-	vector<COMPANY>  companies_to_be_removed;
-	Block acquiring;
-	Block acquired;
+	vector<Block>& allblocks;
+	vector<Block*> sorted_blocks; //all adj blocks with compay setup in sorted order
+	vector<Block*> isolat_blocks; //all adj blocks with no company setup
+	vector<string> companies_to_be_removed;
+	Block* acquiring;
+	Block* acquired;
 	ATile newATile;
 	MergeEvent( vector<Block>& allBlocks, const ATile& newATile );
-	Block* getBlockWithATile( vector<Block>& allblocks, ATile& newATile);
+	Block* getBlockWithATile( vector<Block>& allblocks, const ATile& newATile);
 	bool isValidMerger()const;
 	bool isNewBlock()const;
+	bool isSetupBlock() const;
 	bool isAdjToOneBlock()const;
-	void removedTheMergedCompanyFromAllBlocks(  vector<Block>& allBlocks );
+	void setupCompany( const COMPANY& c );
+	//void removedTheMergedCompanyFromAllBlocks(  vector<Block>& allBlocks );
+	void acquireIsolatedBlocks( Block& acquiring );
+	void mergeNewTileWithExistingCompany();
+	void mergeCompanyWithCompany();
+	void cleanUp();
 };
 
 struct StockTable{
-	int stockprice[NUMBER_OF_STOCKS];
-	int majorbonus[NUMBER_OF_STOCKS];
-	int minorbonus[NUMBER_OF_STOCKS];
+	int stockprice[NUM_STOCK_PRICE];
+	int majorbonus[NUM_STOCK_PRICE];
+	int minorbonus[NUM_STOCK_PRICE];
+
+
 	int stockamont[NUMBER_OF_STOCKS];
 	int available[NUMBER_OF_STOCKS];
+	int stockseed[NUMBER_OF_STOCKS];
 
 	StockTable();
 
@@ -94,6 +106,10 @@ struct StockTable{
 		return r;
 	}
 
+	const int getStockPrice( const COMPANY& c, int size ) const;
+	const int getStockMajor( const COMPANY& c, int size ) const;
+	const int getStockMinor( const COMPANY& c, int size ) const;
+
 };
 
 struct Order;
@@ -108,18 +124,17 @@ public:
 	const vector<Block>   getAllBlocks()const;
 	const vector<COMPANY> getAllAvailableCompanies()const;
 	const string toString()const;
-	int getStockPrice( const COMPANY& c )const;
+	
 	bool isCompanyAvailable( const COMPANY& c )const;
 
 	const Block* getAcquiringBlock()const;
 	const Block* getAcquiredBlock()const;
-
-	//const GAMESTAGE getGameState() const;
-	//void updateGameStage(  );
 	const string getLastestMessage() const;
 	const int getRound() const;
-	//const bool isStupidHumanSTurn() const;
 
+	int getStockPrice( const COMPANY& c )const;
+	int getStockMajor( const COMPANY& c )const;
+	int getStockMinor( const COMPANY& c )const;
 };
 
 class GameCommand;
@@ -132,39 +147,29 @@ struct Game{
 	vector<string> messages;
 	GameStatus gs;
 	StockTable stocktable;
-	GAMESTAGE stage;
 	MergeEvent* pme;
-	//MergeEvent merge_event;
 	int round;
 	ATile current_ATile;
 	Game( );
 	void addCommand( GameCommand* gs ){ commandqueue.push( gs ); }
 	void initGame();
 	void addPlayer( Player* player );
+
+	//void addNewTile();
 	void initPlayerWithATiles();
 	bool isEndOfGame();
-	//bool isStupidHumanSTurn() const;
-	//const ATile askPlayerToPlaceATile( Player* p );
 	void allocatePlayerOneATile( Player* p );
-	//void askPlayerToBuyStock(  Player* p );
-	//void askPlayerToSetupCompany(  Player* p , const ATile& t  );
-	//void askPlayersToSellStock( const vector<Player*> shareholders );
-	//void askPlayersToConvertStock( const vector<Player*> shareholders );
-	//void runTheGame();
-	//void runTheGameForAI();
-	//void runTheGameForHuman();
-	//void runTheGameOneRound();
 	void runTheGameOneLoop();
 	void runTheGameLoop();
-	//void runTheGameOneRoundForStupidHuman();
-	//void runTheGameOneRoundForSmartAI();
 	vector<int> getAvailableNewCompanies();
-	//void doAcquireOnce( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via );
-	//void doAcquire(MergeEvent& me );
-	//void doAcquireForStupidHumanOnce();
-	//void updateGameStageForStupidHuman( );
 	void allocateBonusFor( enum COMPANY c , const vector<Player*> shs );
 	void statistics();
+
+	int getStockPrice( const COMPANY& c )const;
+	int getStockMajor( const COMPANY& c )const;
+	int getStockMinor( const COMPANY& c )const;
+
+	int getCompanySize( const COMPANY& c ) const;
 
 };
 

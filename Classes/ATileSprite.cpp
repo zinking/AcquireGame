@@ -47,7 +47,8 @@ void ATileSprite::draw(void)
 	int hfsz = size/2;
 	CCPoint vt[4] = {ccp(-hfsz, -hfsz), ccp(+hfsz, -hfsz), ccp(+hfsz, +hfsz), ccp(-hfsz, +hfsz)};
 	glLineWidth(1); 
-    glColor4ub(0, 0, 255, 255);
+    //glColor4ub(0, 0, 255, 255);
+	ccDrawColor4B( 0, 0, 255, 255 );
 	ccDrawPoly( vt, 4, true); 
 
 }
@@ -72,10 +73,11 @@ extern ccColor3B COMPANYCOLOR[NUMBER_OF_STOCKS];
 extern ccColor4B COMPANYCOLOR4[NUMBER_OF_STOCKS];
 void ATileLabel::updateCaption( COMPANY c ){
 	//char COMPANYSHORTNAME[NUMBER_OF_STOCKS][2]={"W","S","F","I","A","C","T"};
-
-	label->setString( COMPANYSHORTNAME[c] );
+	const char* name = ( c== EMPTY ? "?":COMPANYSHORTNAME[c] );
+	label->setString( name );
 	//label->setColor( COMPANYCOLOR[c] );
-    CCLayerColor *color_layer = CCLayerColor::create(COMPANYCOLOR4[c]);
+	ccColor4B color = ( c== EMPTY ? COMPANYCOLOR4[7]: COMPANYCOLOR4[c] );
+    CCLayerColor *color_layer = CCLayerColor::create(color);
     color_layer->setPosition(ccp(0, 0)); 
     color_layer->setContentSize(CCSize(BLOCK_SIZE,BLOCK_SIZE)); 
 	label->removeAllChildren();

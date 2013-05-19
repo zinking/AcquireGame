@@ -33,7 +33,7 @@ bool ATile::operator<(  const ATile& rhs )const{
 	return (row  == rhs.row ? col < rhs.col : row < rhs.row );
 }
 string ATile::toString() const {
-	sprintf_s(info,"ATile[%d,%d]",row,col);
+	sprintf_s(info,"T[%d,%d]",row,col);
 	return info;
 }
 
@@ -51,9 +51,9 @@ bool Block::hasATile( const ATile&  t){
 void Block::addATile( const ATile&  t){
 	ATiles.insert( t );
 }
-//why block would have no company setup at all?
+
 bool Block::hasCompany(){
-	return c != -1;
+	return c != EMPTY;
 }
 
 bool Block::operator==( const Block& rhs )const{
@@ -72,17 +72,39 @@ string Block::toString()const{
 	for( auto it=ATiles.begin(); it!=ATiles.end(); ++it){
 		ATilesinfo += it->toString() + " ";
 	}
-	sprintf_s(info,"BLOCK COMPANY[%s] WITH ATiles[%s]", COMPANYNAME[c], ATilesinfo.c_str() );
+	if( c == EMPTY )
+		sprintf_s(info,"BLOCK COMPANY[%s] WITH ATiles[%s]", "EMPTY", ATilesinfo.c_str() );
+	else
+		sprintf_s(info,"BLOCK COMPANY[%s] WITH ATiles[%s]", COMPANYNAME[c], ATilesinfo.c_str() );
 	return info;
 }
 ////////////////////////////////////////////////////////////////////////////////
 StockTable::StockTable(){
-	for( int i=0; i<NUMBER_OF_STOCKS; i++ ){
-		stockprice[i] = 200;
-		majorbonus[i] = 2000;
-		minorbonus[i] = 1500;
-		available[i]  = 1; 
+	for( int i=0; i<NUM_STOCK_PRICE; i++ ){
+		stockprice[i] = (i+2)*100;
+		majorbonus[i] = (i+2)*1000;
+		minorbonus[i] = (i+2)*500;
 	}
+
+	for( int i=0; i<NUMBER_OF_STOCKS; i++ ){
+		available[i]  = 1; 
+		stockseed[i]  = rand() % NUM_STOCK_PRICE;
+	}
+}
+
+const int StockTable::getStockPrice( const COMPANY& c, int size )const {
+	int index = ( size / (( WIDTH*HEIGH)/NUM_STOCK_PRICE) + stockseed[c] ) % NUM_STOCK_PRICE;
+	return stockprice[index];
+}
+
+const int StockTable::getStockMajor( const COMPANY& c, int size )const {
+	int index = ( size / (( WIDTH*HEIGH)/NUM_STOCK_PRICE) + stockseed[c] ) % NUM_STOCK_PRICE;
+	return majorbonus[index];
+}
+
+const int StockTable::getStockMinor( const COMPANY& c, int size )const {
+	int index = ( size / (( WIDTH*HEIGH)/NUM_STOCK_PRICE) + stockseed[c] ) % NUM_STOCK_PRICE;
+	return minorbonus[index];
 }
 ////////////////////////////////////////////////////////////////////////////////
 Player::Player( PlayerAI* pai ){
@@ -93,7 +115,7 @@ Player::Player( PlayerAI* pai ){
 }
 
 void Player::initialize(){
-	this->cash = 1500;
+	this->cash = 6000;
 	this->time_used = 0;
 	memset(stocks,0,sizeof(stocks));
 }
@@ -150,27 +172,19 @@ string Player::toString(){
 
 ////////////////////////////////////////////////////////////////////////////////
 int GameStatus::getStockPrice( const COMPANY& c )const{
-	return pbd->stocktable.stockprice[c];
+	return pbd->getStockPrice(c);
 }
 bool GameStatus::isCompanyAvailable( const COMPANY& c )const{
 	if(c>=0 && c<=NUMBER_OF_STOCKS )return pbd->stocktable.available[c] != 0;
 	return false;
 }
 const Block* GameStatus::getAcquiringBlock()const{
-	//return pbd->pme->sorted_blocks[0];
-	return &pbd->pme->acquiring;
+	return pbd->pme->acquiring;
 }
 const Block* GameStatus::getAcquiredBlock()const{
-	//return pbd->pme->sorted_blocks[1];
-	return &pbd->pme->acquired;
+	return pbd->pme->acquired;
 }
-//const GAMESTAGE GameStatus::getGameState() const{
-//	return pbd->stage;
-//}
 
-//void GameStatus::updateGameStage(  ){
-//	pbd->updateGameStageForStupidHuman();
-//}
 
 const string GameStatus::getLastestMessage() const{
 	int len = pbd->messages.size();	
@@ -199,13 +213,9 @@ const string GameStatus::toString()const{
 	char info[1000]="GAME STATUS";
 	return info;
 }
-//const bool GameStatus::isStupidHumanSTurn() const{
-//	return pbd->isStupidHumanSTurn();
-//}
+
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-MergeEvent::MergeEvent( vector<Block>& allblocks, const ATile& na ){
-	newATile = na;
+MergeEvent::MergeEvent( vector<Block>& ab, const ATile& na ):allblocks(ab),newATile(na){
 	int y = newATile.row;
 	int x = newATile.col;
 	adjblocks[0]=0,adjblocks[1]=0,adjblocks[2]=0,adjblocks[3]=0;
@@ -216,7 +226,7 @@ MergeEvent::MergeEvent( vector<Block>& allblocks, const ATile& na ){
 
 	for( int j=0; j<4; j++ ){
 		Block* ccb = adjblocks[j];
-		if( ccb != 0 ){
+		if( ccb != 0 && ccb->hasCompany() ){
 			int index = 0;
 			for(  ;index<sorted_blocks.size(); index++ ){
 				if( ccb == sorted_blocks[index] ){
@@ -229,10 +239,13 @@ MergeEvent::MergeEvent( vector<Block>& allblocks, const ATile& na ){
 			}
 			if ( index >= 0 ) sorted_blocks.insert( sorted_blocks.begin() + index, ccb );
 		}
+		else if( ccb != 0 ){//isolated blocks are blocks with size 
+			isolat_blocks.push_back( ccb );
+		}
 	}
 }
 
-Block* MergeEvent::getBlockWithATile( vector<Block>& allblocks, ATile& newATile){
+Block* MergeEvent::getBlockWithATile( vector<Block>& allblocks, const ATile& newATile){
 	int n = allblocks.size(), i=0;
 	for( i=0; i<n; i++ ){
 		Block& b = allblocks[i];
@@ -241,24 +254,80 @@ Block* MergeEvent::getBlockWithATile( vector<Block>& allblocks, ATile& newATile)
 	return 0;
 }
 
+
 bool MergeEvent::isValidMerger()const{
 	return sorted_blocks.size() > 1;
 }
 bool MergeEvent::isNewBlock()const{
-	return sorted_blocks.size() == 0;
+	return isolat_blocks.size() == 0 && sorted_blocks.size() == 0;
 }
 bool MergeEvent::isAdjToOneBlock()const{
 	return sorted_blocks.size() == 1;
 }
-void MergeEvent::removedTheMergedCompanyFromAllBlocks(  vector<Block>& allblocks ){
+bool MergeEvent::isSetupBlock()const{
+	return isolat_blocks.size() > 0 && sorted_blocks.size() == 0;
+}
+
+void MergeEvent::mergeNewTileWithExistingCompany(){
+	Block* adjBlock = sorted_blocks[0];
+	adjBlock->addATile( newATile );
+	acquireIsolatedBlocks( *adjBlock );
+	cleanUp();
+}
+
+void MergeEvent::mergeCompanyWithCompany(){
+	//vector<Block*>& blocks_will_be_merged = pGame->pme->sorted_blocks;
+	//Block& AcquiringBlock = *blocks_will_be_merged[0];
+	//Block& AcquiredBlock  = *blocks_will_be_merged[1];
+	acquiring = sorted_blocks[0];
+	acquired  = sorted_blocks[1];
+	acquiring->mergeWith( *acquired );
+	acquiring->addATile( newATile );
+	
+	acquireIsolatedBlocks(*acquiring);
+	sorted_blocks.erase( sorted_blocks.begin()+1 );
+	companies_to_be_removed.push_back( acquired->toString() );
+}
+void MergeEvent::cleanUp(   ){
 	for( auto it2=companies_to_be_removed.begin(); it2 != companies_to_be_removed.end(); ++it2 ){
 		for( auto it=allblocks.begin(); it != allblocks.end(); ++it ){//clear the acquired block from the table
-			if( it->c == *it2 ){
+			if( it->toString() == *it2 ){
 				allblocks.erase(it);
 				break;
 			}
 		}
 	}
+}
+
+void MergeEvent::acquireIsolatedBlocks( Block& acquiring ){
+	//vector<string> blocks_to_removed;
+	for( auto it=isolat_blocks.begin(); it != isolat_blocks.end(); ++it){
+		acquiring.mergeWith( **it );
+		companies_to_be_removed.push_back( (*it)->toString() );
+	}
+	isolat_blocks.clear();
+
+	/*
+	for( auto it2=blocks_to_removed.begin(); it2 != blocks_to_removed.end(); ++it2 ){
+		for( auto it=allblocks.begin(); it != allblocks.end(); ++it ){//clear the acquired block from the table
+			if( it->toString() == *it2 ){
+				allblocks.erase(it);
+				break;
+			}
+		}
+	}
+	*/
+}
+
+void MergeEvent::setupCompany(const COMPANY& c ){
+	Block nb( c );
+	nb.addATile( newATile );
+	
+	acquireIsolatedBlocks( nb );
+	//the sequence here is important because the array stores addresses which will be destroyed after things get inserted into the table
+	allblocks.push_back( nb );
+	cleanUp();
+	
 }
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -274,7 +343,6 @@ void Game::initGame(){
 		for( j=0; j<WIDTH; j++ )
 			allATiles.push_back( ATile(i,j) );
 	random_shuffle ( allATiles.begin(), allATiles.end() );
-	stage = TO_PLACE_TILE;
 }
 
 void Game::addPlayer( Player* player ){
@@ -287,6 +355,7 @@ void Game::allocatePlayerOneATile( Player* p ){
 		allATiles.pop_back();
 	}
 }
+
 
 void Game::initPlayerWithATiles(){
 	vector<string> pids;
@@ -308,14 +377,16 @@ bool Game::isEndOfGame() {
 	bool allBlockGT11 = true;
 	bool oneBlockGE41 = false;
 	int companyNumber = 0;
+	
 	bool hasnoATile = ( allATiles.size() == 0 );
 
-	for_each( allblocks.begin(), allblocks.end(), [&allBlockGT11,&oneBlockGE41](Block& b){
-		if( b.ATiles.size() < 11 ) allBlockGT11 = false;
+	for_each( allblocks.begin(), allblocks.end(), [&allBlockGT11,&oneBlockGE41,&companyNumber](Block& b){
+		if( b.hasCompany() && b.ATiles.size() < 11 ) allBlockGT11 = false;
 		else if( b.ATiles.size() >= 41 ) oneBlockGE41 = true;
+		else if ( b.hasCompany() ) companyNumber++;
 	});
 
-	if( allblocks.size() == 0 ) allBlockGT11 = false;
+	if( companyNumber == 0 ) allBlockGT11 = false;
 
 	bool oneplayerhasnoATile = true;
 	for_each( players.begin(), players.end(), [&oneplayerhasnoATile]( Player* p ){
@@ -326,98 +397,6 @@ bool Game::isEndOfGame() {
 
 	return oneBlockGE41 || allBlockGT11 || oneplayerhasnoATile || hasnoATile;
 }
-
-//const ATile Game::askPlayerToPlaceATile(  Player* p ){
-//	const PlaceATileOrder od = p->pai->decidePlaceATile( gs );
-//	ATile result = od.t;
-//	if( od.execute( this, p ) ){
-//		for_each( players.begin(), players.end(), [&p,&od](Player* pp ){
-//			pp->pai->fyiPlayerPlaceATileOrder( p->id , od );
-//		});
-//	}
-//	return result;
-//}
-
-//void Game::askPlayerToBuyStock(  Player* p ){
-//	const BuyStockOrder od = p->pai->decideBuyStocks( gs );
-//	if( od.execute( this, p ) ){
-//		for_each( players.begin(), players.end(), [&p,&od](Player* pp ){
-//			pp->pai->fyiPlayerBuyStockOrder( p->id , od );
-//		});
-//	}
-//}
-//
-//void Game::askPlayerToSetupCompany(  Player* p, const ATile& t ){
-//	SetupCompanyOrder od = p->pai->decideSetupCompany( gs );
-//	if( od.execute( this, p ) ){
-//		for_each( players.begin(), players.end(), [&p,&od](Player* pp ){
-//			pp->pai->fyiPlayerSetupCompanyOrder( p->id , od );
-//		});
-//
-//		Block nb(od.c);
-//		nb.addATile( t );
-//		allblocks.push_back( nb );
-//	}
-//
-//}
-//
-//void Game::askPlayersToSellStock( const vector<Player*> shareholders ){
-//	for( unsigned int i=0; i<shareholders.size(); i++ ){
-//		Player* ppp = shareholders[i];
-//		const SellStockOrder od = ppp->pai->decideSellStock( gs );
-//		if( od.execute( this, ppp ) ){
-//			for_each( players.begin(), players.end(), [&ppp,&od](Player* pp ){
-//				pp->pai->fyiPlayerSellStockOrder( ppp->id , od );
-//			});
-//		}
-//	}
-//	
-//}
-//
-//void Game::askPlayersToConvertStock( const vector<Player*> shareholders ){
-//	for( unsigned int i=0; i<shareholders.size(); i++ ){
-//		Player* ppp = shareholders[i];
-//		const ConvertStockOrder od = ppp->pai->decideDoStockConversion( gs );
-//		if( od.execute( this, ppp ) ){
-//			for_each( players.begin(), players.end(), [&ppp,&od](Player* pp ){
-//				pp->pai->fyiPlayerConvertStockOrder( ppp->id , od );
-//			});
-//		}
-//	}
-//	
-//}
-//
-//void Game::doAcquire( MergeEvent& me  ){
-//	vector<Block*>& blocks_will_be_merged = me.sorted_blocks;
-//	while( blocks_will_be_merged.size() > 1 ){
-//		Block& AcquiringBlock = *blocks_will_be_merged[0];
-//		Block& AcquiredBlock  = *blocks_will_be_merged[1];
-//		doAcquireOnce( AcquiringBlock, AcquiredBlock, me.newATile );
-//		blocks_will_be_merged.erase( blocks_will_be_merged.begin()+1 );
-//		me.companies_to_be_removed.push_back(AcquiredBlock.c);
-//	}
-//	me.removedTheMergedCompanyFromAllBlocks( allblocks );
-//}
-//
-//void Game::doAcquireOnce( Block& AcquiringBlock, Block& AcquiredBlock, ATile& via ){
-//	vector<Player* > shareholders;
-//	COMPANY stakecompany = AcquiredBlock.c; 
-//	for( unsigned int i=0; i<players.size(); i++ ){
-//		Player& pp = *players[i];
-//		if( pp.hasStock( stakecompany ) ){
-//			shareholders.push_back( &pp );
-//		}
-//	}
-//
-//	allocateBonusFor(  AcquiredBlock.c, shareholders );
-//	askPlayersToSellStock( shareholders );
-//	askPlayersToConvertStock( shareholders );
-//	stocktable.markCompanyAvailable( stakecompany, 1 );
-//
-//	AcquiringBlock.mergeWith( AcquiredBlock );
-//	AcquiringBlock.addATile( via );
-//	
-//}
 
 void Game::allocateBonusFor( COMPANY c , const vector<Player*> shs ){
 	vector<Player*> sh1;
@@ -449,7 +428,8 @@ void Game::allocateBonusFor( COMPANY c , const vector<Player*> shs ){
 	}
 
 	if( sh1.size() > 1 ){//there will be no minor bonus allocated
-		int cashshare = stocktable.majorbonus[ c ] / sh1.size() ;
+		//int cashshare = stocktable.majorbonus[ c ] / sh1.size() ;
+		int cashshare = getStockMajor(c) / sh1.size() ;
 		for_each( sh1.begin(), sh1.end(), [&cashshare]( Player* sh ){
 			sh->debitCash( cashshare );
 			sprintf_s( info, "PLAYER[%s] shared [%d] major share bonus", sh->toString().c_str(), cashshare);
@@ -457,12 +437,13 @@ void Game::allocateBonusFor( COMPANY c , const vector<Player*> shs ){
 		});
 	}
 	else if( sh1.size() == 1 ){
-		sh1[0]->debitCash( stocktable.majorbonus[ c ] );
-		int cashshare = stocktable.majorbonus[ c ];
+		//sh1[0]->debitCash( stocktable.majorbonus[ c ] );
+		int cashshare =  getStockMajor(c);
+		sh1[0]->debitCash( cashshare );
 		sprintf_s( info, "PLAYER[%s] get [%d] major share bonus]", sh1[0]->toString().c_str(), cashshare);
 		cout << info << endl;
 		if( sh2.size() > 1 ){//there will be no minor bonus allocated
-			int cashshare = stocktable.minorbonus[ c ] / sh2.size() ;
+			int cashshare = getStockMinor(c) / sh2.size() ;
 			for_each( sh1.begin(), sh1.end(), [&cashshare]( Player* sh ){
 				sh->debitCash( cashshare );
 				sprintf_s( info, "PLAYER[%s] shared [%d] minor share bonus]", sh->toString().c_str(), cashshare);
@@ -472,21 +453,6 @@ void Game::allocateBonusFor( COMPANY c , const vector<Player*> shs ){
 	}
 
 }
-
-//bool Game:: isStupidHumanSTurn() const{
-//	int plen = players.size();
-//	return round % plen == 0;
-//}
-
-//void Game::runTheGameOneRound(){
-//	
-//	if( isStupidHumanSTurn() ){
-//		runTheGameOneRoundForStupidHuman();
-//	}
-//	else{
-//		runTheGameOneRoundForSmartAI();
-//	}
-//}
 
 void Game::runTheGameLoop(){
 	initPlayerWithATiles();
@@ -513,161 +479,31 @@ void Game::runTheGameOneLoop(){
 	}
 }
 
-//void Game::runTheGameOneRoundForSmartAI(){
-//	int plen = players.size();
-//	Player* player = players[round % plen] ;
-//	ATile pt = askPlayerToPlaceATile( player );
-//	current_ATile = pt;
-//
-//	MergeEvent me( allblocks, pt );
-//	pme = &me;
-//	if( me.isValidMerger() ){
-//		doAcquire( me );
-//	}
-//	else if( me.isNewBlock() ){//TBD: THE GAME FLOW NEED TO BE REFINED
-//		askPlayerToSetupCompany(player, pt);
-//		askPlayerToBuyStock(player);
-//	}
-//	else if( me.isAdjToOneBlock() ){
-//		Block* adjBlock = me.sorted_blocks[0];
-//		adjBlock->addATile( pt );
-//		askPlayerToBuyStock(player);
-//	}
-//
-//	allocatePlayerOneATile( player );
-//	statistics();
-//	round++;
-//}
-//
-//void Game::doAcquireForStupidHumanOnce(){
-//	vector<Block*>& blocks_will_be_merged = pme->sorted_blocks;
-//	Block& AcquiringBlock = *blocks_will_be_merged[0];
-//	Block& AcquiredBlock  = *blocks_will_be_merged[1];
-//	COMPANY stakecompany = AcquiredBlock.c;
-//	vector<Player* > shareholders;
-//			
-//	for( unsigned int i=0; i<players.size(); i++ ){
-//		Player& pp = *players[i];
-//		if( pp.hasStock( stakecompany ) ){
-//			shareholders.push_back( &pp );
-//		}
-//	}
-//
-//	allocateBonusFor(  stakecompany, shareholders );
-//	askPlayersToSellStock( shareholders );
-//	askPlayersToConvertStock( shareholders );
-//	stocktable.markCompanyAvailable( stakecompany, 1 );
-//
-//	AcquiringBlock.mergeWith( AcquiredBlock );
-//	AcquiringBlock.addATile( current_ATile );
-//
-//	blocks_will_be_merged.erase( blocks_will_be_merged.begin()+1 );
-//	pme->companies_to_be_removed.push_back( stakecompany );
-//}
-//
-//void Game::runTheGameOneRoundForStupidHuman(){
-//	int plen = players.size();
-//	Player* player = players[round % plen] ;
-//
-//	if(  TILE_PLACED == stage ){
-//		ATile pt = askPlayerToPlaceATile( player );
-//		current_ATile = pt;
-//		pme = new MergeEvent( allblocks, pt ); 
-//		if( pme->isValidMerger() ){
-//			stage = TO_CONVERT_STOCK;
-//		}
-//		else if( pme->isNewBlock() ){
-//			stage = TO_SETUP_COMPANY;
-//		}
-//		else if( pme->isAdjToOneBlock() ){
-//			Block* adjBlock = pme->sorted_blocks[0];
-//			adjBlock->addATile( pt );
-//			stage = TO_BUY_STOCK;
-//		}
-//	}
-//	else if( COMPANY_SETUP == stage ){
-//		ATile tile = current_ATile;
-//		askPlayerToSetupCompany(player, tile);
-//		stage = TO_BUY_STOCK;
-//	}
-//	else if( STOCK_SOLD == stage ){
-//		askPlayersToConvertStock(players);
-//		stage = TO_BUY_STOCK;
-//	}
-//	else if( STOCK_BOUGHT == stage ){
-//		askPlayerToBuyStock(player);
-//		stage = ROUND_END;
-//	}
-//	else if( STOCK_CONVERTED == stage ){
-//		if( pme->isValidMerger() ){
-//			doAcquireForStupidHumanOnce();
-//			stage = TO_CONVERT_STOCK;
-//		}
-//		else{
-//			pme->removedTheMergedCompanyFromAllBlocks(allblocks);
-//			stage = ROUND_END;
-//		}
-//	}
-//	else if( ROUND_END == stage ){
-//		delete pme;
-//		allocatePlayerOneATile( player );
-//		statistics();
-//		round++;
-//		stage = TO_PLACE_TILE;
-//	}
-//}
-//
-//void Game::runTheGame(){
-//	initPlayerWithATiles();
-//	while( !isEndOfGame() ){
-//		runTheGameOneRound();
-//	}
-//}
+int Game::getStockPrice( const COMPANY& c )const{
+	return stocktable.getStockPrice( c, getCompanySize(c) );
+}
+int Game::getStockMajor( const COMPANY& c )const{
+	return stocktable.getStockMajor( c, getCompanySize(c) );
+}
+int Game::getStockMinor( const COMPANY& c )const{
+	return stocktable.getStockMinor( c, getCompanySize(c) );
+}
 
-//void Game::updateGameStageForStupidHuman( ){
-//	if( stage == TO_PLACE_TILE ){
-//		stage = TILE_PLACED;
-//		cout << "TO_PLACE_TILE -> TILE_PLACED" << endl;
-//	}
-//	else if( stage == TO_BUY_STOCK ){
-//		stage = STOCK_BOUGHT;
-//		cout << "TO_BUY_STOCK -> STOCK_BOUGHT" << endl;
-//	}
-//	else if( stage == TO_SETUP_COMPANY ){
-//		stage = COMPANY_SETUP;
-//		cout << "TO_SETUP_COMPANY -> COMPANY_SETUP" << endl;
-//	}
-//	else if( stage == TO_SELL_STOCK ){
-//		stage = STOCK_SOLD;
-//		cout << "TO_SELL_STOCK -> STOCK_SOLD" << endl;
-//	}
-//	else if ( stage == TO_CONVERT_STOCK ){
-//		stage = STOCK_CONVERTED;
-//		cout << "TO_CONVERT_STOCK -> STOCK_CONVERTED" << endl;
-//	}
-//}
-//void Game::runTheGameForAI(){
-//	initPlayerWithATiles();
-//	while( !isEndOfGame() ){
-//		runTheGameOneRoundForSmartAI();
-//	}
-//}
-//
-//void Game::runTheGameForHuman(){
-//	initPlayerWithATiles();
-//	while( !isEndOfGame() ){
-//		runTheGameOneRoundForStupidHuman();
-//		updateGameStageForStupidHuman();
-//	}
-//}
+int Game::getCompanySize( const COMPANY& c ) const{
+	for( unsigned int  i=0; i<allblocks.size(); i++ ){
+		if( allblocks[i].c == c ) return allblocks[i].ATiles.size();
+	}
+	return 0;
+}
 
 void Game::statistics(){
 	char board[HEIGH][WIDTH];
 	memset( board, '.', sizeof( board ) );
 	for( int i=0; i<allblocks.size(); i++ ){
 		Block& b = allblocks[i];
+		char symbol = b.hasCompany() ? COMPANYNAME[b.c][0]:'?';
 		for( auto it=b.ATiles.begin(); it!=b.ATiles.end(); ++it ){
-			board[ it->row ][ it->col ] = COMPANYNAME[b.c][0];
+			board[ it->row ][ it->col ] = symbol;
 		}
 	}
 	board[current_ATile.row][current_ATile.col] = 'X';
@@ -687,9 +523,3 @@ void Game::statistics(){
 	cout << "==========================================================================" << endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-

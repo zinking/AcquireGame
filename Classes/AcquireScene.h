@@ -66,7 +66,7 @@ public:
 
 	void setGameStatus( GameStatus* gs );
 
-	CCLabelTTF* createImageLabel( CCPoint& ipos, CCRect& rect, int fontsize, string text="" );
+	CCLabelTTF* createImageLabel( const CCPoint& ipos, const CCRect& rect, int fontsize, string text="" );
    
     CREATE_FUNC(PlayerLayer);
 	//LAYER_NODE_FUNC(TouchableLayer);  

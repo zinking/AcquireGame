@@ -81,7 +81,7 @@ bool SellStockOrder::isValid( const GameStatus& gs, const Player& from )const{
 
 bool SellStockOrder::execute( Game* g, Player* p )const{
 	if( isValid( g->gs, *p )){
-		int sharevalue = g->stocktable.stockprice[c] * count ;
+		int sharevalue = g->getStockPrice(c) * count ;
 		p->addStock( c, count * -1 );
 		p->debitCash( sharevalue );
 

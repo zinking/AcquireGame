@@ -1,11 +1,12 @@
 #pragma once
 #include "cocos2d.h"
+#include "Game\definitions.h"
 #include <string>
 struct ATile;
 class ATileSprite :public cocos2d::CCSprite{
 	int r;
 	int c;
-	enum COMPANY cc;
+	COMPANY cc;
 	short size;
 public:
 	~ATileSprite(void){}

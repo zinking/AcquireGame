@@ -28,13 +28,21 @@ bool PlaceTileCommand::run(){
 		if( pGame->pme->isValidMerger() ){
 			pGame->addCommand( new MergeBlockCommand( pPlayer, pGame ) );
 		}
-		else if( pGame->pme->isNewBlock() ){
+		else if( pGame->pme->isSetupBlock() ){
 			pGame->addCommand( new SetupCommpanyCommand( pPlayer, pGame ) );
 			pGame->addCommand( new BuyStockCommand( pPlayer, pGame ) );
 		}
+		else if( pGame->pme->isNewBlock() ){
+			//pGame->addCommand( new SetupCommpanyCommand( pPlayer, pGame ) );
+			//pGame->addNewTile();
+			pGame->pme->setupCompany( EMPTY );//setup an EMPTY COMPANY
+			pGame->addCommand( new BuyStockCommand( pPlayer, pGame ) );
+		}
 		else if( pGame->pme->isAdjToOneBlock() ){
-			Block* adjBlock = pGame->pme->sorted_blocks[0];
-			adjBlock->addATile( pGame->current_ATile );
+			//Block* adjBlock = pGame->pme->sorted_blocks[0];
+			//adjBlock->addATile( pGame->current_ATile );
+			//pGame->pme->acquireIsolatedBlocks( *adjBlock );
+			pGame->pme->mergeNewTileWithExistingCompany();
 			pGame->addCommand( new BuyStockCommand( pPlayer, pGame ) );
 		}
 		notified = false;
@@ -48,12 +56,13 @@ bool PlaceTileCommand::run(){
 bool MergeBlockCommand::run(){
 	PlayerAI* pai = pPlayer->pai;
 
-	vector<Block*>& blocks_will_be_merged = pGame->pme->sorted_blocks;
-	Block& AcquiringBlock = *blocks_will_be_merged[0];
-	Block& AcquiredBlock  = *blocks_will_be_merged[1];
-	pGame->pme->acquiring = AcquiringBlock;
-	pGame->pme->acquired  = AcquiredBlock;
-	COMPANY stakecompany = AcquiredBlock.c;
+	//vector<Block*>& blocks_will_be_merged = pGame->pme->sorted_blocks;
+	//Block& AcquiringBlock = *blocks_will_be_merged[0];
+	//Block& AcquiredBlock  = *blocks_will_be_merged[1];
+	//pGame->pme->acquiring = AcquiringBlock;
+	//pGame->pme->acquired  = AcquiredBlock;
+	pGame->pme->mergeCompanyWithCompany();
+	COMPANY stakecompany = pGame->pme->acquired->c;
 	vector<Player* > shareholders;
 			
 	for( unsigned int i=0; i<pGame->players.size(); i++ ){
@@ -72,17 +81,20 @@ bool MergeBlockCommand::run(){
 	
 	pGame->stocktable.markCompanyAvailable( stakecompany, 1 );
 
-	AcquiringBlock.mergeWith( AcquiredBlock );
-	AcquiringBlock.addATile( pGame->current_ATile );
+	//AcquiringBlock.mergeWith( AcquiredBlock );
+	//AcquiringBlock.addATile( pGame->current_ATile );
+	
 
-	blocks_will_be_merged.erase( blocks_will_be_merged.begin()+1 );
-	pGame->pme->companies_to_be_removed.push_back( stakecompany );
+	//blocks_will_be_merged.erase( blocks_will_be_merged.begin()+1 );
+	//pGame->pme->companies_to_be_removed.push_back( stakecompany );
 
 	if( pGame->pme->isValidMerger() ){
 		pGame->addCommand( new MergeBlockCommand( pPlayer, pGame ) );
 	}
 	else{
-		pGame->pme->removedTheMergedCompanyFromAllBlocks(pGame->allblocks);
+		//pGame->pme->removedTheMergedCompanyFromAllBlocks(pGame->allblocks);
+		//pGame->pme->acquireIsolatedBlocks( AcquiringBlock );
+		pGame->pme->cleanUp();
 	}	
 
 	return true;
@@ -145,9 +157,11 @@ bool SetupCommpanyCommand::run(){
 			for_each( pGame->players.begin(), pGame->players.end(), [this,&od](Player* pp ){
 				pp->pai->fyiPlayerSetupCompanyOrder( pPlayer->id , od );
 			});
-			Block nb(od.c);
-			nb.addATile( pGame->current_ATile );
-			pGame->allblocks.push_back( nb );
+			//Block nb(od.c);
+			//nb.addATile( pGame->current_ATile );
+			//pGame->allblocks.push_back( nb );
+			pGame->pme->setupCompany( od.c );
+
 		}
 		
 		notified = false;
