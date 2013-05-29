@@ -32,6 +32,7 @@ struct Block{
 	string toString()const;
 };
 
+struct GameStatus;
 struct PlayerAI;
 struct Player{
 	string id;
@@ -50,6 +51,7 @@ struct Player{
 	bool hasStock( const enum COMPANY c ) const;
 	int getStockAmt( const enum COMPANY c ) const;
 	int ATileCount()const;
+	int getTotalBalance( const GameStatus* gs ) const;
 	string toString();
 	set<ATile> ATiles;
 	time_t time_used;
@@ -154,6 +156,8 @@ struct Game{
 	void addCommand( GameCommand* gs ){ commandqueue.push( gs ); }
 	void initGame();
 	void addPlayer( Player* player );
+
+	string getWinner();
 
 	//void addNewTile();
 	void initPlayerWithATiles();

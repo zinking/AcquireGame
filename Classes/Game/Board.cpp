@@ -86,6 +86,7 @@ StockTable::StockTable(){
 		minorbonus[i] = (i+2)*500;
 	}
 
+	srand( time(NULL) );
 	for( int i=0; i<NUMBER_OF_STOCKS; i++ ){
 		available[i]  = 1; 
 		stockseed[i]  = rand() % NUM_STOCK_PRICE;
@@ -162,17 +163,32 @@ string Player::toString(){
 	string shstr;
 	for( int i=0;i<NUMBER_OF_STOCKS; i++ ){
 		if( stocks[i] >= 0 ){
-			sprintf_s(info,"%c(%d) ", COMPANYNAME[i][0],stocks[i] );
+			sprintf_s(info,"%c(%2d) ", COMPANYNAME[i][0],stocks[i] );
 			shstr += info;
 		}
 	}
-	sprintf_s( info, "%s(%d$) %s ", id.c_str(), cash,shstr.c_str() );
+	sprintf_s( info, "%10s(%10d$) %s ", id.c_str(), cash,shstr.c_str() );
 	return info;
+}
+
+int Player::getTotalBalance( const GameStatus* gs ) const{
+	int total = 0;
+	total+= this->getCash();
+	for( int i=0; i<NUMBER_OF_STOCKS; i++ ){
+		total += stocks[i] *  gs->getStockPrice( COMPANY(i));
+	}
+	return total;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 int GameStatus::getStockPrice( const COMPANY& c )const{
 	return pbd->getStockPrice(c);
+}
+int GameStatus::getStockMajor( const COMPANY& c )const{
+	return pbd->getStockMajor(c);
+}
+int GameStatus::getStockMinor( const COMPANY& c )const{
+	return pbd->getStockMinor(c);
 }
 bool GameStatus::isCompanyAvailable( const COMPANY& c )const{
 	if(c>=0 && c<=NUMBER_OF_STOCKS )return pbd->stocktable.available[c] != 0;
@@ -276,9 +292,6 @@ void MergeEvent::mergeNewTileWithExistingCompany(){
 }
 
 void MergeEvent::mergeCompanyWithCompany(){
-	//vector<Block*>& blocks_will_be_merged = pGame->pme->sorted_blocks;
-	//Block& AcquiringBlock = *blocks_will_be_merged[0];
-	//Block& AcquiredBlock  = *blocks_will_be_merged[1];
 	acquiring = sorted_blocks[0];
 	acquired  = sorted_blocks[1];
 	acquiring->mergeWith( *acquired );
@@ -342,6 +355,7 @@ void Game::initGame(){
 	for( i=0; i<HEIGH; i++ )
 		for( j=0; j<WIDTH; j++ )
 			allATiles.push_back( ATile(i,j) );
+	srand( time(NULL) );
 	random_shuffle ( allATiles.begin(), allATiles.end() );
 }
 
@@ -354,6 +368,22 @@ void Game::allocatePlayerOneATile( Player* p ){
 		p->addATile( allATiles.back() );
 		allATiles.pop_back();
 	}
+}
+
+string Game::getWinner(){
+	int max = 0;
+	string winner;
+	for( auto it=players.begin(); it!=players.end(); ++it ){
+		int pb = (*it)->getTotalBalance( &gs );
+		sprintf_s( info,"%10s TOTAL BALANCE[%10d]", (*it)->getID(), pb );
+		cout <<  info  << endl;
+		if(  pb > max ){
+			max = pb;
+			winner = (*it)->getID();
+		}
+	}
+
+	return winner;
 }
 
 
@@ -459,6 +489,8 @@ void Game::runTheGameLoop(){
 	while( !isEndOfGame() ){
 		runTheGameOneLoop();
 	}
+
+	cout << getWinner() << " WINNS THE GAME" << endl;
 }
 
 void Game::runTheGameOneLoop(){

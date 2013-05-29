@@ -38,9 +38,6 @@
     <ClCompile Include="..\Classes\ATileSprite.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\Popup.cpp">
-      <Filter>Classes</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\Game\GameStage.cpp">
       <Filter>Classes\Game</Filter>
     </ClCompile>
@@ -74,9 +71,6 @@
       <Filter>Classes\Game</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\ATileSprite.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\Popup.h">
       <Filter>Classes</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\Game\GameStage.h">

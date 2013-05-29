@@ -21,6 +21,7 @@ class AcquireScene : public cocos2d::CCLayer
 	GameStatus* pGame;
 	ATileLabel* ats[HEIGH][WIDTH];
 	std::vector<cocos2d::CCSprite*> pcon;
+	CCLayerColor* pmenulayer;
 public:
     virtual bool init();  
 	void initGameUI();
@@ -30,10 +31,15 @@ public:
 	void showStatusPopup();
 
 	void setGameStatus( GameStatus* gs );
+	static string getGameStatusInfo( GameStatus* gs );
     
     // a selector callback
     void menuCloseCallback(CCObject* pSender);
 	void menuClickCallBack(CCObject* pSender);
+
+	void onCancelGMSelected(CCObject* pSender);
+
+	static CCLayerColor* create_pa_layer();
    
     CREATE_FUNC(AcquireScene);
 	//LAYER_NODE_FUNC(TouchableLayer);  
@@ -46,38 +52,44 @@ public:
 class PlayerLayer : public cocos2d::CCLayerColor, public DefaultAI
 {
 	GameStatus* pGame;
-	CCTexture2D * pTexture;
 	CCLabelTTF* pHintLabel;
-	CCMenu* pMenu;
-	CCMenuItemLabel* pMenuOK;
+	
 
 	int selected_tile_index;
 	COMPANY selected_company;
 	int amount;
+
+	CCLayerColor* pinfolayer;
+	CCLayerColor* poperlayer;
+	
+	CCMenu* pTileMenu;
+	CCMenu* pCompMenu;
 	
 public:
     virtual bool init();  
-	void updatePlayerRender();
+	
 	void initPlayerUI();
 	void setPlayerName( string name );
 	void toggleDimmedBackGround( bool toggled );
-	void createMenuContent();
-	void clearMenuContent();
+
+	static CCLayerColor* createInfoLayer();
+	void updateLayerInfo();
+
+	static CCLayerColor* createOperLayer();
+	static CCMenu* createTileOPMenu();
+	static CCMenu* createCompOPMenu();
 
 	void setGameStatus( GameStatus* gs );
-
-	CCLabelTTF* createImageLabel( const CCPoint& ipos, const CCRect& rect, int fontsize, string text="" );
    
     CREATE_FUNC(PlayerLayer);
-	//LAYER_NODE_FUNC(TouchableLayer);  
 	bool ccTouchBegan(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){ return true; }
 	void ccTouchMoved(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
 	void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent){}
 
 	const ConvertStockOrder decideDoStockConversion(const GameStatus& bs );
-	const PlaceATileOrder decidePlaceATile( const GameStatus& bs );
-	const BuyStockOrder decideBuyStocks( const GameStatus& bs);
-	const SellStockOrder decideSellStock( const GameStatus& bs);
+	const PlaceATileOrder	decidePlaceATile( const GameStatus& bs );
+	const BuyStockOrder		decideBuyStocks( const GameStatus& bs);
+	const SellStockOrder	decideSellStock( const GameStatus& bs);
 	const SetupCompanyOrder decideSetupCompany( const GameStatus& bs );
 
 	void askPlayerToPlaceTile();
@@ -144,6 +156,7 @@ public:
 
 };
 
+class AcquireSelectScene;
 class AcquireGameScene : public cocos2d::CCScene
 {
 	Game* pGame;
@@ -154,46 +167,62 @@ public:
     ~AcquireGameScene();
 	void updateGame( float dt);
     bool init();
+	void initGameWithSelection( AcquireSelectScene*  sscene );
     CREATE_FUNC(AcquireGameScene);
-	static cocos2d::CCScene* create_splash_scene();
-	cocos2d::CCScene* create_gameend_scene();
+
+	static void loadTexture();
+	static CCScene* create_gameend_scene();
+	static CCScene* create_splash_scene();
+	static CCLayerColor* create_bg_layer();
+	static CCLayerColor* create_an_layer();
+	
+
+	CCLayerColor* create_static_layer();
 	void switchToMainScene(CCObject *pSender);
 	void switchToEndScene(CCObject *pSender);
+	
 };
 
 
 class AcquireSelectScene : public cocos2d::CCScene
 {
+public:
 	int ai_num;
-	enum AITYPE{ NAIVE_AI, ZHENAI, HOMAI };
+	
+	enum MITYPE{ AIVSAI, HUVSAI };
 	AITYPE seleted_ais[MAXAI];
+	MITYPE mode;
 	CCMenu* p_aioptionmenu;
 	CCMenu* p_aimainmenu;
 
-	CCLayerColor* pAIOptionLayer;
-	CCLayerColor* pMainLayer;
+	CCLayerColor* pAISelectionLayer;
+	CCLayerColor* pMISelectionLayer;
 
 	CCMenuItemSprite* painumlabel;
 	CCMenuItemSprite* paitypelabel[MAXAI];
 
-	CCTexture2D* pTexture;
+	//CCTexture2D* pTexture;
 
-public:
+
     AcquireSelectScene() {};
 	~AcquireSelectScene(){}
     bool init();
     CREATE_FUNC(AcquireSelectScene);
 
-	void selectVSAIOptions(CCObject *pSender);
+	//void selectVSAIOptions(CCObject *pSender);
 	void onAICountChanged(CCObject *pSender);
 	void onAITYPEChanged(CCObject *pSender);
-	void onAISelected(CCObject *pSender);
 
-	void updateAIOptionsUI( );
-	void initAIOptionsUI();
+	void onAIVSAISelected(CCObject *pSender);
+	void onHUVSAISelected(CCObject *pSender);
+	void onExitGMSelected(CCObject *pSender);
 
-	//void updateMainOptionsUI( );
-	void initMainOptionsUI();
+	void updateAISelectionsUI( );
+	
+	CCLayerColor* createMISelectionLayer();
+	CCLayerColor* createAISelectionLayer();
+
+	void switchToGameScene(CCObject *pSender);
 	
 };
 

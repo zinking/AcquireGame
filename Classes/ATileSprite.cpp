@@ -70,7 +70,8 @@ void ATileLabel::initTile( int rr, int cc ){
 
 extern char COMPANYSHORTNAME[NUMBER_OF_STOCKS][2];
 extern ccColor3B COMPANYCOLOR[NUMBER_OF_STOCKS];
-extern ccColor4B COMPANYCOLOR4[NUMBER_OF_STOCKS];
+extern ccColor4B COMPANYCOLOR4[NUMBER_OF_STOCKS+1];
+
 void ATileLabel::updateCaption( COMPANY c ){
 	//char COMPANYSHORTNAME[NUMBER_OF_STOCKS][2]={"W","S","F","I","A","C","T"};
 	const char* name = ( c== EMPTY ? "?":COMPANYSHORTNAME[c] );

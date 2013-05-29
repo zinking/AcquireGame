@@ -74,11 +74,35 @@ bool AppDelegate::applicationDidFinishLaunching() {
     pDirector->setAnimationInterval(1.0 / 60);
 
     // create a scene. it's an autorelease object
+
+	//directly jump to the human play menu
+	/*AcquireGameScene::loadTexture();
+	AcquireSelectScene *pScene = AcquireSelectScene::create();
+	AcquireGameScene* pGameScene = AcquireGameScene::create();
+	pGameScene->initGameWithSelection( pScene );
+	pDirector->runWithScene(pGameScene);*/
+
+	//directly jump to the end play menu
+	/*AcquireGameScene::loadTexture();
+	AcquireSelectScene *pScene = AcquireSelectScene::create();
+	AcquireGameScene* pGameScene = AcquireGameScene::create();
+	pGameScene->initGameWithSelection( pScene );
+    CCScene *s = AcquireGameScene::create_gameend_scene();
+	s->addChild( pGameScene->create_static_layer() );
+	pDirector->runWithScene(s);*/
     
-	//CCScene *pScene = AcquireGameScene::create_select_scene();
-	 //CCScene *pScene = AcquireSelectScene::create();
-	 CCScene *pScene = AcquireGameScene::create_splash_scene();
-	 pDirector->runWithScene(pScene);
+	//AcquireGameScene *pScene = AcquireGameScene::create();
+	//AcquireGameScene::loadTexture();
+	//AcquireSelectScene *pScene = AcquireSelectScene::create();
+	//CCScene *pScene = AcquireGameScene::create_splash_scene();
+	//CCScene *pScene = AcquireGameScene::create_gameend_scene();
+	//pDirector->runWithScene(pScene);
+	//pScene ->switchToGameScene(NULL);
+	//pDirector->runWithScene( pScene->create_gameend_scene() );
+	
+	//standard procedure
+	CCScene *pScene = AcquireGameScene::create_splash_scene();
+	pDirector->runWithScene(pScene);
     return true;
 }
 

@@ -26,9 +26,11 @@
 #define DESIGN_RESOLUTION_480X320    0
 #define DESIGN_RESOLUTION_1024X768   1
 #define DESIGN_RESOLUTION_2048X1536  2
+#define DESIGN_RESOLUTION_960X720    3
+#define DESIGN_RESOLUTION_1280X720   4
 
 /* If you want to switch design resolution, change next line */
-#define TARGET_DESIGN_RESOLUTION_SIZE  DESIGN_RESOLUTION_480X320
+#define TARGET_DESIGN_RESOLUTION_SIZE  DESIGN_RESOLUTION_1280X720
 
 typedef struct tagResource
 {
@@ -37,7 +39,9 @@ typedef struct tagResource
 }Resource;
 
 static Resource smallResource  =  { cocos2d::CCSizeMake(480, 320),   "iphone" };
-static Resource mediumResource =  { cocos2d::CCSizeMake(1024, 768),  "ipad"   };
+//static Resource mediumResource =  { cocos2d::CCSizeMake(1024, 768),  "ipad"   };
+//static Resource mediumResource =  { cocos2d::CCSizeMake(960, 720),   "ipad"   };
+static Resource mediumResource =  { cocos2d::CCSizeMake(1280, 720),   "ipad"   };
 static Resource largeResource  =  { cocos2d::CCSizeMake(2048, 1536), "ipadhd" };
 
 #if (TARGET_DESIGN_RESOLUTION_SIZE == DESIGN_RESOLUTION_480X320)
@@ -46,6 +50,10 @@ static cocos2d::CCSize designResolutionSize = cocos2d::CCSizeMake(480, 320);
 static cocos2d::CCSize designResolutionSize = cocos2d::CCSizeMake(1024, 768);
 #elif (TARGET_DESIGN_RESOLUTION_SIZE == DESIGN_RESOLUTION_2048X1536)
 static cocos2d::CCSize designResolutionSize = cocos2d::CCSizeMake(2048, 1536);
+#elif (TARGET_DESIGN_RESOLUTION_SIZE == DESIGN_RESOLUTION_960X720)
+static cocos2d::CCSize designResolutionSize = cocos2d::CCSizeMake( 960, 720 );
+#elif (TARGET_DESIGN_RESOLUTION_SIZE == DESIGN_RESOLUTION_1280X720)
+static cocos2d::CCSize designResolutionSize = cocos2d::CCSizeMake( 1280, 720 );
 #else
 #error unknown target design resolution!
 #endif

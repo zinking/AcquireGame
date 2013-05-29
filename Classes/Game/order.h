@@ -5,6 +5,7 @@ struct Player;
 struct ATile;
 struct Game;
 #include "definitions.h"
+#include "Board.h"
 
 struct Order{
 	virtual bool execute( Game* b, Player* p)const{ return false; }
@@ -14,7 +15,7 @@ struct Order{
 
 
 struct PlaceATileOrder:Order{
-	const ATile& t;
+	const ATile t;
 	PlaceATileOrder( const ATile& tt );
 	string toString();
 	bool isValid( const GameStatus& gs, const Player& from )const;

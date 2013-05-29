@@ -193,10 +193,45 @@ int main1(){
 	return 0;
 }
 
+extern char COMPANYSHORTNAME[MAXNUMBER_OF_STOCKS][2];
 int main(){
+	StockTable st;
+	cout << "PRICE" << endl;
+	for ( int i=0; i<NUMBER_OF_ATileS_EACH; i++ ){
+		cout << COMPANYSHORTNAME[i] << " ";
+		for( int j=1; j<40; j++ ){
+			cout << st.getStockPrice( (COMPANY)i, j ) << " ";
+		}
+		cout << endl;
+	}
+
+	cout << "MAJOR" << endl;
+	for ( int i=0; i<NUMBER_OF_ATileS_EACH; i++ ){
+		cout << COMPANYSHORTNAME[i] << " ";
+		for( int j=1; j<40; j++ ){
+			cout << st.getStockMajor( (COMPANY)i, j ) << " ";
+		}
+		cout << endl;
+	}
+
+	cout << "MINOR" << endl;
+	for ( int i=0; i<NUMBER_OF_ATileS_EACH; i++ ){
+		cout << COMPANYSHORTNAME[i] << " ";
+		for( int j=1; j<40; j++ ){
+			cout << st.getStockMinor( (COMPANY)i, j ) << " ";
+		}
+		cout << endl;
+	}
+
+	system("pause");
+}
+
+int main2(){
 	Game g;
-	DefaultAI ai1("N1");
-	DefaultAI ai2("N2");
+	//DefaultAI ai1("N1");
+	//DefaultAI ai2("N2");
+	ZHENWAI ai2("ZHENW");
+	HOMAI ai1("HOM");
 
 	Player a( & ai1 );
 	ai1.setPlayer( &a );
