@@ -16,7 +16,7 @@ string BuyStockOrder::toString(){
 bool BuyStockOrder::isValid( const GameStatus& gs, const Player& from )const{
 	if( c>=0 && c<=NUMBER_OF_STOCKS && !gs.isCompanyAvailable( c ) ){
 		int cost = gs.getStockPrice( c ) * count ;
-		return from.getCash() > cost;
+		return from.getCash() >= cost;
 	}
 	return false;
 }
